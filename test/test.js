@@ -1,28 +1,35 @@
-/* eslint-env mocha */
-import 'babel-polyfill'
-import fs from 'fs'
-import { assert } from 'chai'
-import WAE from '../src'
+import { promises as fs } from 'fs';
+import { assert } from 'chai';
 
-const fileReader = (fileName) => fs.readFileSync(fileName, { encoding: 'utf-8' })
-const expectedResult = JSON.parse(fileReader('test/resources/expectedResult.json'))
-const testPage = fileReader('test/resources/testPage.html')
-const { microdata, rdfa, metatags, jsonld } = WAE().parse(testPage)
+import WAE from '../src/index.js';
 
-describe('Web Auto Extractor', function () {
-  it('should find all elements with microdata', function () {
-    assert.deepEqual(microdata, expectedResult.microdata)
-  })
+const fileReader = async (fileName) =>
+  await fs.readFile(fileName, { encoding: 'utf-8' });
 
-  it('should find all elements with rdfa', function () {
-    assert.deepEqual(rdfa, expectedResult.rdfa)
-  })
+describe('Web Auto Extractor', () => {
+  let expectedResult, testPage, microdata, rdfa, metatags, jsonld;
 
-  it('should find embedded json-ld', function () {
-    assert.deepEqual(jsonld, expectedResult.jsonld)
-  })
+  before(async () => {
+    expectedResult = JSON.parse(
+      await fileReader('test/resources/expectedResult.json'),
+    );
+    testPage = await fileReader('test/resources/testPage.html');
+    ({ microdata, rdfa, metatags, jsonld } = WAE().parse(testPage));
+  });
 
-  it('should find embedded meta tags', function () {
-    assert.deepEqual(metatags, expectedResult.metatags)
-  })
-})
+  it('should find all elements with microdata', () => {
+    assert.deepEqual(microdata, expectedResult.microdata);
+  });
+
+  it('should find all elements with rdfa', () => {
+    assert.deepEqual(rdfa, expectedResult.rdfa);
+  });
+
+  it('should find embedded json-ld', () => {
+    assert.deepEqual(jsonld, expectedResult.jsonld);
+  });
+
+  it('should find embedded meta tags', () => {
+    assert.deepEqual(metatags, expectedResult.metatags);
+  });
+});

@@ -1,27 +1,12 @@
 {
   "metatags": {
-    "priceCurrency": [
-      "USD",
-      "USD"
-    ],
-    "datePublished": [
-      "2009-05-08"
-    ],
-    "prepTime": [
-      "PT15M"
-    ],
-    "cookTime": [
-      "PT1H"
-    ],
-    "interactionType": [
-      "http://schema.org/CommentAction"
-    ],
-    "refresh": [
-       "30"
-    ],
-    "userInteractionCount": [
-      "140"
-    ]
+    "priceCurrency": ["USD", "USD"],
+    "datePublished": ["2009-05-08"],
+    "prepTime": ["PT15M"],
+    "cookTime": ["PT1H"],
+    "interactionType": ["http://schema.org/CommentAction"],
+    "refresh": ["30"],
+    "userInteractionCount": ["140"]
   },
   "microdata": {
     "Product": [

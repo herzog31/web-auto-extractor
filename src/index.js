@@ -1,33 +1,22 @@
-import $ from 'cheerio'
-import MetaTagsParser from './parsers/metatag-parser'
-import MicroRdfaParser from './parsers/micro-rdfa-parser'
-import JsonldParser from './parsers/jsonld-parser'
-if (!global._babelPolyfill) {
-  require('babel-polyfill')
-}
+import * as cheerio from 'cheerio';
 
-export default function () {
-  let $html = null
+import MetaTagsParser from './parsers/metatag-parser.js';
+import MicroRdfaParser from './parsers/micro-rdfa-parser.js';
+import JsonldParser from './parsers/jsonld-parser.js';
 
-  const loadCheerioObject = function (_$html) {
-    $html = _$html
-  }
-
-  const parse = function (html, options) {
-    if (!($html && $html.prototype && $html.prototype.cheerio)) {
-      $html = $.load(html, options)
-    }
+export default () => {
+  function parse(html, options) {
+    const $ = cheerio.load(html, options);
 
     return {
-      metatags: MetaTagsParser($html),
+      metatags: MetaTagsParser($),
       microdata: MicroRdfaParser(html, 'micro'),
       rdfa: MicroRdfaParser(html, 'rdfa'),
-      jsonld: JsonldParser($html)
-    }
+      jsonld: JsonldParser($),
+    };
   }
 
   return {
     parse,
-    loadCheerioObject
-  }
-}
+  };
+};

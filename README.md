@@ -1,10 +1,12 @@
-# Web Auto Extractor
-[![Build Status](https://travis-ci.org/indix/web-auto-extractor.svg?branch=master)](https://travis-ci.org/indix/web-auto-extractor)
+# Web Auto Extractor 2.0
+
+> The original project can be found [here](https://github.com/indix/web-auto-extractor).
 
 Parse semantically structured information from any HTML webpage.
 
-Supported formats:-
-- Encodings that support [Schema.org](http://schema.org/) vocabularies:-
+Supported formats:
+
+- Encodings that support [Schema.org](http://schema.org/) vocabularies:
   - Microdata
   - RDFa-lite
   - JSON-LD
@@ -12,26 +14,22 @@ Supported formats:-
 
 Popularly, many websites mark up their webpages with Schema.org vocabularies for better SEO. This library helps you parse that information to JSON.
 
-**[Demo](https://tonicdev.com/npm/web-auto-extractor)** it on tonicdev
-
 ## Installation
+
 `npm install web-auto-extractor`
 
 ## [Usage](#usage)
 
 ```js
-// IF CommonJS
-var WAE = require('web-auto-extractor').default
-// IF ES6
-import WAE from 'web-auto-extractor'
+import WAE from 'web-auto-extractor';
 
-var parsed = WAE().parse(sampleHTML)
-
+var parsed = WAE().parse(sampleHTML);
 ```
 
 Let's use the following text as the `sampleHTML` in our example. It uses Schema.org vocabularies to structure a Product information and is encoded in `microdata` format.
 
 #### [Input](#input)
+
 ```html
 <div itemscope itemtype="http://schema.org/Product">
   <span itemprop="brand">ACME</span>
@@ -65,7 +63,7 @@ Let's use the following text as the `sampleHTML` in our example. It uses Schema.
 
 #### [Output](#output)
 
-Our `parsed` object should look like -
+Our `parsed` object should look like
 
 ```json
 {
@@ -105,10 +103,7 @@ Our `parsed` object should look like -
   "rdfa": {},
   "jsonld": {},
   "metatags": {
-    "priceCurrency": [
-      "USD",
-      "USD"
-    ]
+    "priceCurrency": ["USD", "USD"]
   }
 }
 ```
@@ -124,9 +119,20 @@ For example, take the following HTML snippet.
 ```html
 <div itemscope itemtype="http://schema.org/Movie">
   <h1 itemprop="name">Ghostbusters</h1>
-  <div itemprop="productionCompany" itemscope itemtype="http://schema.org/Organization">Black Rhino</div>
-  <div itemprop="countryOfOrigin" itemscope itemtype="http://schema.org/Country">
-    Country: <span itemprop="name" content="USA">United States</span><p>
+  <div
+    itemprop="productionCompany"
+    itemscope
+    itemtype="http://schema.org/Organization"
+  >
+    Black Rhino
+  </div>
+  <div
+    itemprop="countryOfOrigin"
+    itemscope
+    itemtype="http://schema.org/Country"
+  >
+    Country: <span itemprop="name" content="USA">United States</span>
+    <p></p>
   </div>
 </div>
 ```
