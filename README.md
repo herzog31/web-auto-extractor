@@ -1,5 +1,7 @@
 # Web Auto Extractor 2.0
 
+[![CI](https://github.com/herzog31/web-auto-extractor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/herzog31/web-auto-extractor/actions/workflows/ci.yml)
+
 > The original project can be found [here](https://github.com/indix/web-auto-extractor).
 
 Parse semantically structured information from any HTML webpage.
