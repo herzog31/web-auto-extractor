@@ -1,8 +1,11 @@
 # Web Auto Extractor 2.0
 
+![GitHub License](https://img.shields.io/github/license/herzog31/web-auto-extractor)
 [![CI](https://github.com/herzog31/web-auto-extractor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/herzog31/web-auto-extractor/actions/workflows/ci.yml)
+[![NPM Version](https://img.shields.io/npm/v/%40marbec%2Fweb-auto-extractor?link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40marbec%2Fweb-auto-extractor)](https://www.npmjs.com/package/@marbec/web-auto-extractor)
+![Node Current](https://img.shields.io/node/v/%40marbec%2Fweb-auto-extractor)
 
-> The original project can be found [here](https://github.com/indix/web-auto-extractor).
+> This project is a fork of [indix/web-auto-extractor](https://github.com/indix/web-auto-extractor).
 
 Parse semantically structured information from any HTML webpage.
 
