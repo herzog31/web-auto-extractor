@@ -1,5 +1,15 @@
 import htmlparser from 'htmlparser2';
 
+const typesWithId = [
+  'Thing',
+  'WebPage',
+  'Place',
+  'Organization',
+  'Person',
+  'Event',
+  'Product',
+];
+
 function getPropValue(tagName, attribs, TYPE, PROP) {
   if (attribs[TYPE]) {
     return null;
@@ -15,17 +25,19 @@ function getPropValue(tagName, attribs, TYPE, PROP) {
 }
 
 const getAttrNames = (specName) => {
-  let TYPE, PROP;
+  let TYPE, PROP, ID_PROPS;
   if (specName.toLowerCase().startsWith('micro')) {
     TYPE = 'itemtype';
     PROP = 'itemprop';
+    ID_PROPS = ['href', 'itemid'];
   } else if (specName.toLowerCase().startsWith('rdfa')) {
     TYPE = 'typeof';
     PROP = 'property';
+    ID_PROPS = ['about', 'href', 'resource'];
   } else {
     throw new Error('Unsupported spec: use either micro or rdfa');
   }
-  return { TYPE, PROP };
+  return { TYPE, PROP, ID_PROPS };
 };
 
 const getType = (typeString) => {
@@ -41,7 +53,7 @@ const createHandler = function (specName) {
   let tags = [];
   let topLevelScope = {};
   let textForProp = null;
-  const { TYPE, PROP } = getAttrNames(specName);
+  const { TYPE, PROP, ID_PROPS } = getAttrNames(specName);
 
   const onopentag = function (tagName, attribs) {
     let currentScope = scopes[scopes.length - 1];
@@ -67,6 +79,12 @@ const createHandler = function (specName) {
         const vocab = attribs.vocab;
         currentScope['@context'] = context || vocab;
         currentScope['@type'] = type;
+        if (typesWithId.includes(type)) {
+          const id = ID_PROPS.find((prop) => attribs[prop]);
+          if (id) {
+            currentScope['@id'] = attribs[id];
+          }
+        }
         tag = TYPE;
         scopes.push(currentScope);
       } else if (attribs[PROP]) {
