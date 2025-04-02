@@ -46,6 +46,7 @@ describe('Web Auto Extractor', () => {
         Product: [
           {
             '@context': 'http://schema.org/',
+            '@location': '38,906',
             '@type': 'Product',
             name: 'Executive Anvil',
             image: 'http://www.example.com/anvil_executive.jpg',
@@ -86,6 +87,7 @@ describe('Web Auto Extractor', () => {
           {
             '@context': 'http://schema.org',
             '@type': 'TheaterEvent',
+            '@location': '38,544',
             name: 'Random Theater Show #1',
             startDate: '2016-12-15T19:30:00-06:00',
             location: {
@@ -95,6 +97,7 @@ describe('Web Auto Extractor', () => {
           },
           {
             '@context': 'http://schema.org',
+            '@location': '38,544',
             '@type': 'TheaterEvent',
             name: 'Random Theater Show #2',
             startDate: '2016-12-16T19:30:00-06:00',
@@ -105,6 +108,95 @@ describe('Web Auto Extractor', () => {
           },
         ],
       });
+    });
+
+    it('parses @graph syntax from jsonld3.html', async () => {
+      const jsonld3 = await fileReader('test/resources/jsonld3.html');
+      const { jsonld } = WAE().parse(jsonld3);
+      assert.deepEqual(jsonld, {
+        Movie: [
+          {
+            '@type': 'Movie',
+            '@location': '38,434',
+            name: 'The Matrix',
+            director: { '@type': 'Person', name: 'Lana Wachowski' },
+          },
+        ],
+        Person: [
+          {
+            '@type': 'Person',
+            '@location': '38,434',
+            name: 'Keanu Reeves',
+            actor: { '@type': 'Movie', name: 'The Matrix' },
+          },
+        ],
+      });
+    });
+
+    it('parses the position from jsonld4.html', async () => {
+      const jsonld4 = await fileReader('test/resources/jsonld4.html');
+      const { jsonld } = WAE().parse(jsonld4);
+      assert.deepEqual(jsonld, {
+        Organization: [
+          {
+            '@context': 'https://schema.org',
+            '@location': '113,534',
+            '@type': 'Organization',
+            name: 'Tech Corp',
+            url: 'https://www.techcorp.com',
+            logo: 'https://www.techcorp.com/logo.png',
+            contactPoint: {
+              '@type': 'ContactPoint',
+              telephone: '+1-555-123-4567',
+              contactType: 'customer service',
+              availableLanguage: ['English', 'Spanish'],
+            },
+          },
+        ],
+        Product: [
+          {
+            '@context': 'https://schema.org',
+            '@location': '595,1192',
+            '@type': 'Product',
+            name: 'Smart Widget Pro',
+            description: 'Next generation smart widget with AI capabilities',
+            brand: {
+              '@type': 'Brand',
+              name: 'Tech Corp',
+            },
+            offers: {
+              '@type': 'Offer',
+              price: '299.99',
+              priceCurrency: 'USD',
+              availability: 'https://schema.org/InStock',
+            },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '4.8',
+              reviewCount: '1250',
+            },
+          },
+        ],
+      });
+
+      const organizationPosition = jsonld.Organization[0]['@location'];
+      assert.equal(organizationPosition, '113,534');
+      let [start, end] = organizationPosition.split(',');
+
+      // Need to trim as the jsonld is indented
+      const organizationMarkup = jsonld4.substring(start, end);
+      assert.equal(organizationMarkup.startsWith('{'), true);
+      assert.equal(organizationMarkup.endsWith('}'), true);
+      assert.isTrue(organizationMarkup.includes('"@type": "Organization"'));
+
+      const productPosition = jsonld.Product[0]['@location'];
+      assert.equal(productPosition, '595,1192');
+      [start, end] = productPosition.split(',');
+
+      const productMarkup = jsonld4.substring(start, end);
+      assert.equal(productMarkup.startsWith('{'), true);
+      assert.equal(productMarkup.endsWith('}'), true);
+      assert.isTrue(productMarkup.includes('"@type": "Product"'));
     });
   });
 

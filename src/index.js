@@ -12,7 +12,7 @@ export default () => {
       metatags: MetaTagsParser($),
       microdata: MicroRdfaParser(html, 'micro'),
       rdfa: MicroRdfaParser(html, 'rdfa'),
-      jsonld: JsonldParser($),
+      jsonld: JsonldParser(html),
     };
   }
 

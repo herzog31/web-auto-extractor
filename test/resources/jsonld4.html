@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <title>JSON-LD Example</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Tech Corp",
+        "url": "https://www.techcorp.com",
+        "logo": "https://www.techcorp.com/logo.png",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+1-555-123-4567",
+          "contactType": "customer service",
+          "availableLanguage": ["English", "Spanish"]
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "Smart Widget Pro",
+        "description": "Next generation smart widget with AI capabilities",
+        "brand": {
+          "@type": "Brand",
+          "name": "Tech Corp"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "299.99",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "reviewCount": "1250"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Welcome to Tech Corp</h1>
+    <p>This is a sample page with structured data in the header.</p>
+  </body>
+</html>
