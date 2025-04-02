@@ -1,4 +1,4 @@
-import htmlparser from 'htmlparser2';
+import { SAXParser } from 'parse5-sax-parser';
 
 const typesWithId = [
   'Thing',
@@ -55,7 +55,17 @@ const createHandler = function (specName) {
   let textForProp = null;
   const { TYPE, PROP, ID_PROPS } = getAttrNames(specName);
 
-  const onopentag = function (tagName, attribs) {
+  const onOpenTag = function ({
+    tagName,
+    attrs,
+    selfClosing,
+    sourceCodeLocation,
+  }) {
+    const attribs = attrs.reduce((acc, current) => {
+      acc[current.name] = current.value;
+      return acc;
+    }, {});
+
     let currentScope = scopes[scopes.length - 1];
     let tag = false;
 
@@ -79,6 +89,7 @@ const createHandler = function (specName) {
         const vocab = attribs.vocab;
         currentScope['@context'] = context || vocab;
         currentScope['@type'] = type;
+        currentScope['@location'] = sourceCodeLocation.startOffset;
         if (typesWithId.includes(type)) {
           const id = ID_PROPS.find((prop) => attribs[prop]);
           if (id) {
@@ -114,9 +125,12 @@ const createHandler = function (specName) {
         }
       }
     }
-    tags.push(tag);
+    if (!selfClosing) {
+      tags.push(tag);
+    }
   };
-  const ontext = function (text) {
+
+  const onText = function ({ text }) {
     if (textForProp) {
       if (Array.isArray(scopes[scopes.length - 1][textForProp])) {
         scopes[scopes.length - 1][textForProp][
@@ -127,10 +141,13 @@ const createHandler = function (specName) {
       }
     }
   };
-  const onclosetag = function () {
+
+  const onCloseTag = function ({ sourceCodeLocation }) {
     const tag = tags.pop();
     if (tag === TYPE) {
       let scope = scopes.pop();
+      scope['@location'] =
+        `${scope['@location']},${sourceCodeLocation.endOffset}`;
       if (!scope['@context']) {
         delete scope['@context'];
       }
@@ -145,15 +162,19 @@ const createHandler = function (specName) {
   };
 
   return {
-    onopentag,
-    ontext,
-    onclosetag,
+    onOpenTag,
+    onText,
+    onCloseTag,
     topLevelScope,
   };
 };
 
 export default (html, specName) => {
+  const parser = new SAXParser({ sourceCodeLocationInfo: true });
   const handler = createHandler(specName);
-  new htmlparser.Parser(handler).end(html);
+  parser.on('startTag', handler.onOpenTag);
+  parser.on('endTag', handler.onCloseTag);
+  parser.on('text', handler.onText);
+  parser.end(html);
   return handler.topLevelScope;
 };
