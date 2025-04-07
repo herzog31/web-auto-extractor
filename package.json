@@ -20,7 +20,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "cheerio": "^1.0.0",
     "parse5-sax-parser": "^7.0.0"
   },
   "devDependencies": {
