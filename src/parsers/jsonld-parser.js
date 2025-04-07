@@ -1,4 +1,4 @@
-import { SAXParser } from 'parse5-sax-parser';
+import { HTMLSAXParser } from './html-sax-parser.js';
 
 const createHandler = function () {
   const jsonldData = [];
@@ -61,13 +61,12 @@ const createHandler = function () {
 };
 
 export default function (html) {
-  const parser = new SAXParser({ sourceCodeLocationInfo: true });
+  const parser = new HTMLSAXParser();
   const handler = createHandler();
   parser.on('startTag', handler.onOpenTag);
   parser.on('text', handler.onText);
   parser.on('endTag', handler.onCloseTag);
-  parser.write(html);
-  parser.end();
+  parser.end(html);
 
   const collectedJsonldData = handler.jsonldData;
 

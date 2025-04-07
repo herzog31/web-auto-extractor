@@ -19,9 +19,6 @@
     "node": ">=18.0.0"
   },
   "license": "MIT",
-  "dependencies": {
-    "parse5-sax-parser": "^7.0.0"
-  },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "chai": "^5.2.0",

@@ -1,4 +1,4 @@
-import { SAXParser } from 'parse5-sax-parser';
+import { HTMLSAXParser } from './html-sax-parser.js';
 
 const typesWithId = [
   'Thing',
@@ -170,7 +170,7 @@ const createHandler = function (specName) {
 };
 
 export default (html, specName) => {
-  const parser = new SAXParser({ sourceCodeLocationInfo: true });
+  const parser = new HTMLSAXParser();
   const handler = createHandler(specName);
   parser.on('startTag', handler.onOpenTag);
   parser.on('endTag', handler.onCloseTag);
