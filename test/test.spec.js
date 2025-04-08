@@ -1,16 +1,22 @@
 import { promises as fs } from 'fs';
 import { assert } from 'chai';
 
-import WAE from '../src/index.js';
+import WebAutoExtractor from '../src/index.js';
 
 const fileReader = async (fileName) =>
   await fs.readFile(fileName, { encoding: 'utf-8' });
 
 describe('Web Auto Extractor', () => {
+  let extractor;
+
+  beforeEach(() => {
+    extractor = new WebAutoExtractor({ addLocation: true });
+  });
+
   describe('Meta tags', () => {
     it('parses meta tags from microdata1.html', async () => {
       const microdata1 = await fileReader('test/resources/microdata1.html');
-      const { metatags } = WAE().parse(microdata1);
+      const { metatags } = extractor.parse(microdata1);
       assert.deepEqual(metatags, {
         priceCurrency: ['USD'],
       });
@@ -18,7 +24,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses meta tags from microdata2.html', async () => {
       const microdata2 = await fileReader('test/resources/microdata2.html');
-      const { metatags } = WAE().parse(microdata2);
+      const { metatags } = extractor.parse(microdata2);
       assert.deepEqual(metatags, {
         datePublished: ['2009-05-08'],
         refresh: ['30'],
@@ -31,7 +37,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses meta tags from rdfa1.html', async () => {
       const rdfa1 = await fileReader('test/resources/rdfa1.html');
-      const { metatags } = WAE().parse(rdfa1);
+      const { metatags } = extractor.parse(rdfa1);
       assert.deepEqual(metatags, {
         priceCurrency: ['USD'],
       });
@@ -41,7 +47,7 @@ describe('Web Auto Extractor', () => {
   describe('JSON-LD', () => {
     it('parses JSON-LD from jsonld1.html', async () => {
       const jsonld1 = await fileReader('test/resources/jsonld1.html');
-      const { jsonld } = WAE().parse(jsonld1);
+      const { jsonld } = extractor.parse(jsonld1);
       assert.deepEqual(jsonld, {
         Product: [
           {
@@ -81,7 +87,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses JSON-LD from jsonld2.html', async () => {
       const jsonld2 = await fileReader('test/resources/jsonld2.html');
-      const { jsonld } = WAE().parse(jsonld2);
+      const { jsonld } = extractor.parse(jsonld2);
       assert.deepEqual(jsonld, {
         TheaterEvent: [
           {
@@ -112,7 +118,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses @graph syntax from jsonld3.html', async () => {
       const jsonld3 = await fileReader('test/resources/jsonld3.html');
-      const { jsonld } = WAE().parse(jsonld3);
+      const { jsonld } = extractor.parse(jsonld3);
       assert.deepEqual(jsonld, {
         Movie: [
           {
@@ -135,7 +141,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses the position from jsonld4.html', async () => {
       const jsonld4 = await fileReader('test/resources/jsonld4.html');
-      const { jsonld } = WAE().parse(jsonld4);
+      const { jsonld } = extractor.parse(jsonld4);
       assert.deepEqual(jsonld, {
         Organization: [
           {
@@ -198,12 +204,32 @@ describe('Web Auto Extractor', () => {
       assert.equal(productMarkup.endsWith('}'), true);
       assert.isTrue(productMarkup.includes('"@type": "Product"'));
     });
+
+    it('embeds source code in jsonld', async () => {
+      const jsonld4 = await fileReader('test/resources/jsonld4.html');
+      extractor = new WebAutoExtractor({ embedSource: true });
+      const { jsonld } = extractor.parse(jsonld4);
+      assert.isTrue(
+        jsonld.Product[0]['@source'].includes('"@type": "Product"'),
+      );
+      assert.isTrue(
+        jsonld.Organization[0]['@source'].includes('"@type": "Organization"'),
+      );
+    });
+
+    it('embeds source code in jsonld with @graph syntax', async () => {
+      const jsonld3 = await fileReader('test/resources/jsonld3.html');
+      extractor = new WebAutoExtractor({ embedSource: true });
+      const { jsonld } = extractor.parse(jsonld3);
+      assert.isTrue(jsonld.Movie[0]['@source'].includes('@graph'));
+      assert.isTrue(jsonld.Person[0]['@source'].includes('@graph'));
+    });
   });
 
   describe('RDFa', () => {
     it('parses RDFa from rdfa1.html', async () => {
       const rdfa1 = await fileReader('test/resources/rdfa1.html');
-      const { rdfa } = WAE().parse(rdfa1);
+      const { rdfa } = extractor.parse(rdfa1);
       assert.deepEqual(rdfa, {
         Product: [
           {
@@ -217,19 +243,16 @@ describe('Web Auto Extractor', () => {
             image: 'anvil_executive.jpg',
             mpn: '925872',
             aggregateRating: {
-              '@location': '592,784',
               '@type': 'AggregateRating',
               ratingValue: '4.4',
               reviewCount: '89',
             },
             offers: {
-              '@location': '792,1509',
               '@type': 'Offer',
               priceCurrency: 'USD',
               price: '119.99',
               priceValidUntil: '5 November!',
               seller: {
-                '@location': '1103,1222',
                 '@type': 'Organization',
                 name: 'Executive Objects',
               },
@@ -243,7 +266,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses @id fields from href attributes in a tags', async () => {
       const rdfa2 = await fileReader('test/resources/rdfa2.html');
-      const { rdfa } = WAE().parse(rdfa2);
+      const { rdfa } = extractor.parse(rdfa2);
       assert.deepEqual(rdfa, {
         BreadcrumbList: [
           {
@@ -253,10 +276,8 @@ describe('Web Auto Extractor', () => {
             itemListElement: [
               {
                 '@type': 'ListItem',
-                '@location': '234,480',
                 item: {
                   '@type': 'WebPage',
-                  '@location': '292,419',
                   name: 'Books',
                   '@id': 'https://example.com/books',
                 },
@@ -264,17 +285,14 @@ describe('Web Auto Extractor', () => {
               },
               {
                 '@type': 'ListItem',
-                '@location': '495,805',
                 item: {
                   '@type': 'WebPage',
                   name: 'Science Fiction',
-                  '@location': '553,744',
                   '@id': 'https://example.com/books/sciencefiction',
                 },
                 position: '2',
               },
               {
-                '@location': '820,981',
                 '@type': 'ListItem',
                 name: 'Award Winners',
                 position: '3',
@@ -287,7 +305,7 @@ describe('Web Auto Extractor', () => {
 
     it('adds location information of the parsed data', async () => {
       const rdfa1 = await fileReader('test/resources/rdfa1.html');
-      const { rdfa } = WAE().parse(rdfa1);
+      const { rdfa } = extractor.parse(rdfa1);
 
       const productPosition = rdfa.Product[0]['@location'];
       assert.equal(productPosition, '75,1520');
@@ -302,27 +320,24 @@ describe('Web Auto Extractor', () => {
         productMarkup.substring(productMarkup.length - 6, productMarkup.length),
         '</div>',
       );
+    });
 
-      const sellerPosition = rdfa.Product[0].offers.seller['@location'];
-      assert.equal(sellerPosition, '1103,1222');
-      [start, end] = sellerPosition.split(',');
-
-      const sellerMarkup = rdfa1.substring(start, end);
-      assert.equal(
-        sellerMarkup.substring(0, 46),
-        '<span property="seller" typeof="Organization">',
+    it('embeds source code in rdfa', async () => {
+      const rdfa2 = await fileReader('test/resources/rdfa2.html');
+      extractor = new WebAutoExtractor({ embedSource: true });
+      const { rdfa } = extractor.parse(rdfa2);
+      assert.isTrue(
+        rdfa.BreadcrumbList[0]['@source'].includes('typeof="BreadcrumbList"'),
       );
-      assert.equal(
-        sellerMarkup.substring(sellerMarkup.length - 7, sellerMarkup.length),
-        '</span>',
-      );
+      assert.isTrue(rdfa.BreadcrumbList[0]['@source'].startsWith('<ol'));
+      assert.isTrue(rdfa.BreadcrumbList[0]['@source'].endsWith('</ol>'));
     });
   });
 
   describe('Microdata', () => {
     it('parses Microdata from microdata1.html', async () => {
       const microdata1 = await fileReader('test/resources/microdata1.html');
-      const { microdata } = WAE().parse(microdata1);
+      const { microdata } = extractor.parse(microdata1);
       assert.deepEqual(microdata, {
         Product: [
           {
@@ -337,21 +352,18 @@ describe('Web Auto Extractor', () => {
             mpn: '925872',
             aggregateRating: {
               '@context': 'http://schema.org/',
-              '@location': '454,679',
               '@type': 'AggregateRating',
               ratingValue: '4.4',
               reviewCount: '89',
             },
             offers: {
               '@context': 'http://schema.org/',
-              '@location': '683,1382',
               '@type': 'Offer',
               priceCurrency: 'USD',
               price: '119.99',
               priceValidUntil: '5 November!',
               seller: {
                 '@context': 'http://schema.org/',
-                '@location': '989,1130',
                 '@type': 'Organization',
                 name: 'Executive Objects',
               },
@@ -365,7 +377,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses Microdata from microdata2.html', async () => {
       const microdata2 = await fileReader('test/resources/microdata2.html');
-      const { microdata } = WAE().parse(microdata2);
+      const { microdata } = extractor.parse(microdata2);
       assert.deepEqual(microdata, {
         Recipe: [
           {
@@ -387,7 +399,6 @@ describe('Web Auto Extractor', () => {
               '@type': 'NutritionInformation',
               calories: '240 calories',
               fatContent: '9 grams fat',
-              '@location': '845,1078',
             },
             recipeIngredient: [
               '3 or 4 ripe bananas, smashed',
@@ -398,7 +409,6 @@ describe('Web Auto Extractor', () => {
               'Preheat the oven to 350 degrees. Mix in the ingredients in a bowl. Add the\n    flour last. Pour the mixture into a loaf pan and bake for one hour.',
             interactionStatistic: {
               '@context': 'http://schema.org/',
-              '@location': '1519,1795',
               '@type': 'InteractionCounter',
               interactionType: 'http://schema.org/CommentAction',
               userInteractionCount: '140',
@@ -410,7 +420,7 @@ describe('Web Auto Extractor', () => {
 
     it('parses @id fields from href attributes in item scopes', async () => {
       const microdata3 = await fileReader('test/resources/microdata3.html');
-      const { microdata } = WAE().parse(microdata3);
+      const { microdata } = extractor.parse(microdata3);
       assert.deepEqual(microdata, {
         BreadcrumbList: [
           {
@@ -421,19 +431,16 @@ describe('Web Auto Extractor', () => {
               {
                 '@context': 'https://schema.org/',
                 '@type': 'ListItem',
-                '@location': '138,429',
                 item: 'https://example.com/books',
                 name: 'Books',
                 position: '1',
               },
               {
                 '@context': 'https://schema.org/',
-                '@location': '444,917',
                 '@type': 'ListItem',
                 item: {
                   '@context': 'https://schema.org/',
                   '@id': 'https://example.com/books/sciencefiction',
-                  '@location': '564,856',
                   '@type': 'WebPage',
                   name: 'Science Fiction',
                 },
@@ -442,7 +449,6 @@ describe('Web Auto Extractor', () => {
               {
                 '@context': 'https://schema.org/',
                 '@type': 'ListItem',
-                '@location': '932,1288',
                 item: 'https://example.com/books/sciencefiction/awardwinners',
                 name: 'Award Winners',
                 position: '3',
@@ -451,13 +457,12 @@ describe('Web Auto Extractor', () => {
           },
           {
             '@context': 'https://schema.org/',
-            '@type': 'BreadcrumbList',
             '@location': '1303,1918',
+            '@type': 'BreadcrumbList',
             itemListElement: [
               {
                 '@context': 'https://schema.org/',
                 '@type': 'ListItem',
-                '@location': '1369,1670',
                 item: 'https://example.com/literature',
                 name: 'Literature',
                 position: '1',
@@ -465,7 +470,6 @@ describe('Web Auto Extractor', () => {
               {
                 '@context': 'https://schema.org/',
                 '@type': 'ListItem',
-                '@location': '1685,1908',
                 name: 'Award Winners',
                 position: '2',
               },
@@ -477,7 +481,7 @@ describe('Web Auto Extractor', () => {
 
     it('adds location information of the parsed data', async () => {
       const microdata3 = await fileReader('test/resources/microdata3.html');
-      const { microdata } = WAE().parse(microdata3);
+      const { microdata } = extractor.parse(microdata3);
 
       const breadcrumbPosition = microdata.BreadcrumbList[0]['@location'];
       assert.equal(breadcrumbPosition, '72,1298');
@@ -495,28 +499,19 @@ describe('Web Auto Extractor', () => {
         ),
         '</ol>',
       );
+    });
 
-      const itemListPosition =
-        microdata.BreadcrumbList[0].itemListElement[1]['@location'];
-      assert.equal(itemListPosition, '444,917');
-      [start, end] = itemListPosition.split(',');
-
-      const itemListMarkup = microdata3.substring(start, end);
-      assert.equal(
-        itemListMarkup.substring(0, 111),
-        `<li
-        itemprop="itemListElement"
-        itemscope
-        itemtype="https://schema.org/ListItem"
-      >`,
-      );
-      assert.equal(
-        itemListMarkup.substring(
-          itemListMarkup.length - 5,
-          itemListMarkup.length,
+    it('embeds source code in microdata', async () => {
+      const microdata1 = await fileReader('test/resources/microdata1.html');
+      extractor = new WebAutoExtractor({ embedSource: true });
+      const { microdata } = extractor.parse(microdata1);
+      assert.isTrue(
+        microdata.Product[0]['@source'].includes(
+          'itemtype="http://schema.org/Product"',
         ),
-        '</li>',
       );
+      assert.isTrue(microdata.Product[0]['@source'].startsWith('<div'));
+      assert.isTrue(microdata.Product[0]['@source'].endsWith('</div>'));
     });
   });
 });

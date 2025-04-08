@@ -7,19 +7,7 @@ export class HTMLSAXParser {
     this._lastTextEndPos = 0;
   }
 
-  on(event, handler) {
-    if (!this._events[event]) {
-      this._events[event] = [];
-    }
-    this._events[event].push(handler);
-    return this;
-  }
-
-  addListener(event, handler) {
-    return this.on(event, handler);
-  }
-
-  emit(event, ...args) {
+  #emit(event, ...args) {
     if (!this._events[event]) {
       return false;
     }
@@ -27,11 +15,11 @@ export class HTMLSAXParser {
     return true;
   }
 
-  _emitStartTag(tagName, attrs, selfClosing, start, end) {
+  #emitStartTag(tagName, attrs, selfClosing, start, end) {
     this._currentTagStartPos = start;
     this._currentTagEndPos = end;
     this._lastTextEndPos = end;
-    this.emit('startTag', {
+    this.#emit('startTag', {
       tagName,
       attrs,
       selfClosing,
@@ -42,11 +30,11 @@ export class HTMLSAXParser {
     });
   }
 
-  _emitEndTag(tagName, start, end) {
+  #emitEndTag(tagName, start, end) {
     this._currentTagStartPos = start;
     this._currentTagEndPos = end;
     this._lastTextEndPos = end;
-    this.emit('endTag', {
+    this.#emit('endTag', {
       tagName,
       sourceCodeLocation: {
         startOffset: start,
@@ -55,7 +43,7 @@ export class HTMLSAXParser {
     });
   }
 
-  parse(html) {
+  #parse(html) {
     this._buffer = html;
     let pos = 0;
     let textStart = 0;
@@ -91,7 +79,7 @@ export class HTMLSAXParser {
         if (!inTag && pos > textStart) {
           const text = html.slice(textStart, pos);
           if (!inScript && !inComment) {
-            this._handleText(text, textStart, pos);
+            this.#handleText(text, textStart, pos);
           } else if (inScript) {
             scriptContent = text;
           }
@@ -196,7 +184,7 @@ export class HTMLSAXParser {
           if (tagName.toLowerCase() === 'script') {
             inScript = false;
             if (scriptContent.trim()) {
-              this.emit('text', {
+              this.#emit('text', {
                 text: scriptContent,
                 sourceCodeLocation: {
                   startOffset: scriptStart,
@@ -205,7 +193,7 @@ export class HTMLSAXParser {
               });
             }
           }
-          this._emitEndTag(tagName, tagStart, pos);
+          this.#emitEndTag(tagName, tagStart, pos);
         } else {
           const selfClosing = html[pos - 2] === '/';
           if (
@@ -220,7 +208,7 @@ export class HTMLSAXParser {
           }
           // For self-closing tags, include the '/' and '>' in the end offset
           const endPos = pos;
-          this._emitStartTag(tagName, attrs, selfClosing, tagStart, endPos);
+          this.#emitStartTag(tagName, attrs, selfClosing, tagStart, endPos);
           // Update textStart to be after the tag
           textStart = pos;
         }
@@ -242,17 +230,17 @@ export class HTMLSAXParser {
     if (pos > textStart) {
       const text = html.slice(textStart, pos);
       if (!inScript && !inComment) {
-        this._handleText(text, textStart, pos);
+        this.#handleText(text, textStart, pos);
       }
     }
   }
 
-  _handleText(text, start, end) {
+  #handleText(text, start, end) {
     if (text.trim() === '') {
       return;
     }
 
-    this.emit('text', {
+    this.#emit('text', {
       text,
       sourceCodeLocation: {
         startOffset: start,
@@ -261,7 +249,15 @@ export class HTMLSAXParser {
     });
   }
 
+  on(event, handler) {
+    if (!this._events[event]) {
+      this._events[event] = [];
+    }
+    this._events[event].push(handler);
+    return this;
+  }
+
   end(html) {
-    this.parse(html);
+    this.#parse(html);
   }
 }

@@ -1,22 +1,31 @@
 import { HTMLSAXParser } from './html-sax-parser.js';
 
-const createHandler = function () {
-  const jsonldData = [];
-  let scriptScope = false;
+export default class JsonldParser {
+  constructor(html, options = {}) {
+    this.html = html;
+    this.options = options;
+    this.jsonldData = [];
+    this.scriptScope = false;
+    this.parser = new HTMLSAXParser();
 
-  const onOpenTag = function ({ tagName, attrs }) {
+    this.parser.on('startTag', this.#onOpenTag.bind(this));
+    this.parser.on('text', this.#onText.bind(this));
+    this.parser.on('endTag', this.#onCloseTag.bind(this));
+  }
+
+  #onOpenTag({ tagName, attrs }) {
     if (
       tagName === 'script' &&
       attrs.find(
         (attr) => attr.name === 'type' && attr.value === 'application/ld+json',
       )
     ) {
-      scriptScope = true;
+      this.scriptScope = true;
     }
-  };
+  }
 
-  const onText = function ({ text, sourceCodeLocation }) {
-    if (!scriptScope) {
+  #onText({ text, sourceCodeLocation }) {
+    if (!this.scriptScope) {
       return;
     }
 
@@ -33,66 +42,70 @@ const createHandler = function () {
 
       // Add script tag location to root items
       if (!Array.isArray(parsed)) {
-        parsed['@location'] = `${startOffset},${endOffset}`;
+        if (this.options.addLocation) {
+          parsed['@location'] = `${startOffset},${endOffset}`;
+        }
+        if (this.options.embedSource) {
+          parsed['@source'] = this.html.slice(startOffset, endOffset);
+        }
       } else {
         parsed.forEach((item) => {
-          item['@location'] = `${startOffset},${endOffset}`;
+          if (this.options.addLocation) {
+            item['@location'] = `${startOffset},${endOffset}`;
+          }
+          if (this.options.embedSource) {
+            item['@source'] = this.html.slice(startOffset, endOffset);
+          }
         });
       }
 
-      jsonldData.push(parsed);
+      this.jsonldData.push(parsed);
     } catch (e) {
       console.error('Could not parse jsonld', e);
     }
-  };
+  }
 
-  const onCloseTag = function ({ tagName }) {
-    if (tagName === 'script' && scriptScope) {
-      scriptScope = false;
+  #onCloseTag({ tagName }) {
+    if (tagName === 'script' && this.scriptScope) {
+      this.scriptScope = false;
     }
-  };
+  }
 
-  return {
-    onOpenTag,
-    onText,
-    onCloseTag,
-    jsonldData,
-  };
-};
+  #normalizeJsonldData() {
+    const normalizedData = {};
 
-export default function (html) {
-  const parser = new HTMLSAXParser();
-  const handler = createHandler();
-  parser.on('startTag', handler.onOpenTag);
-  parser.on('text', handler.onText);
-  parser.on('endTag', handler.onCloseTag);
-  parser.end(html);
-
-  const collectedJsonldData = handler.jsonldData;
-
-  // Normalize the jsonld data
-  const jsonldData = {};
-
-  collectedJsonldData.forEach((item) => {
-    if (!Array.isArray(item)) {
-      item = [item];
-    }
-
-    item.forEach((item) => {
-      if (item['@graph']) {
-        item['@graph'].forEach((graphItem) => {
-          // Move location down to new root items
-          graphItem['@location'] = item['@location'];
-
-          jsonldData[graphItem['@type']] = jsonldData[graphItem['@type']] || [];
-          jsonldData[graphItem['@type']].push(graphItem);
-        });
-      } else {
-        jsonldData[item['@type']] = jsonldData[item['@type']] || [];
-        jsonldData[item['@type']].push(item);
+    this.jsonldData.forEach((item) => {
+      if (!Array.isArray(item)) {
+        item = [item];
       }
-    });
-  });
 
-  return jsonldData;
+      item.forEach((item) => {
+        if (item['@graph']) {
+          item['@graph'].forEach((graphItem) => {
+            // Move location and scope down to new root items
+            if (item['@location']) {
+              graphItem['@location'] = item['@location'];
+            }
+            if (item['@source']) {
+              graphItem['@source'] = item['@source'];
+            }
+
+            normalizedData[graphItem['@type']] =
+              normalizedData[graphItem['@type']] || [];
+            normalizedData[graphItem['@type']].push(graphItem);
+          });
+        } else {
+          normalizedData[item['@type']] = normalizedData[item['@type']] || [];
+          normalizedData[item['@type']].push(item);
+        }
+      });
+    });
+
+    return normalizedData;
+  }
+
+  parse() {
+    this.parser.end(this.html);
+    return this.#normalizeJsonldData();
+  }
 }

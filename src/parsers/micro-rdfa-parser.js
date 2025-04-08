@@ -10,144 +10,171 @@ const typesWithId = [
   'Product',
 ];
 
-function getPropValue(tagName, attribs, TYPE, PROP) {
-  if (attribs[TYPE]) {
-    return null;
-  } else if ((tagName === 'a' || tagName === 'link') && attribs.href) {
-    return attribs.href.trim();
-  } else if (attribs.content) {
-    return attribs.content.trim();
-  } else if (attribs[PROP] === 'image' && attribs.src) {
-    return attribs.src.trim();
-  } else {
-    return null;
+export default class MicroRdfaParser {
+  constructor(html, specName, options = {}) {
+    this.html = html;
+    this.specName = specName;
+    this.options = options;
+
+    this.scopes = [];
+    this.tags = [];
+    this.topLevelScope = {};
+    this.textForProp = null;
+    this.parser = new HTMLSAXParser();
+
+    const { TYPE, PROP, ID_PROPS } = this.#getAttrNames(specName);
+    this.TYPE = TYPE;
+    this.PROP = PROP;
+    this.ID_PROPS = ID_PROPS;
+
+    this.parser.on('startTag', this.#onOpenTag.bind(this));
+    this.parser.on('endTag', this.#onCloseTag.bind(this));
+    this.parser.on('text', this.#onText.bind(this));
   }
-}
 
-const getAttrNames = (specName) => {
-  let TYPE, PROP, ID_PROPS;
-  if (specName.toLowerCase().startsWith('micro')) {
-    TYPE = 'itemtype';
-    PROP = 'itemprop';
-    ID_PROPS = ['href', 'itemid'];
-  } else if (specName.toLowerCase().startsWith('rdfa')) {
-    TYPE = 'typeof';
-    PROP = 'property';
-    ID_PROPS = ['about', 'href', 'resource'];
-  } else {
-    throw new Error('Unsupported spec: use either micro or rdfa');
+  #getAttrNames(specName) {
+    let TYPE, PROP, ID_PROPS;
+    if (specName.toLowerCase().startsWith('micro')) {
+      TYPE = 'itemtype';
+      PROP = 'itemprop';
+      ID_PROPS = ['href', 'itemid'];
+    } else if (specName.toLowerCase().startsWith('rdfa')) {
+      TYPE = 'typeof';
+      PROP = 'property';
+      ID_PROPS = ['about', 'href', 'resource'];
+    } else {
+      throw new Error('Unsupported spec: use either micro or rdfa');
+    }
+    return { TYPE, PROP, ID_PROPS };
   }
-  return { TYPE, PROP, ID_PROPS };
-};
 
-const getType = (typeString) => {
-  const match = /(.*\/)(\w+)/g.exec(typeString);
-  return {
-    context: match && match[1] ? match[1] : undefined,
-    type: match && match[2] ? match[2] : typeString,
-  };
-};
+  #getType(typeString) {
+    const match = /(.*\/)(\w+)/g.exec(typeString);
+    return {
+      context: match && match[1] ? match[1] : undefined,
+      type: match && match[2] ? match[2] : typeString,
+    };
+  }
 
-const createHandler = function (specName) {
-  let scopes = [];
-  let tags = [];
-  let topLevelScope = {};
-  let textForProp = null;
-  const { TYPE, PROP, ID_PROPS } = getAttrNames(specName);
+  #getPropValue(tagName, attribs) {
+    if (attribs[this.TYPE]) {
+      return null;
+    } else if ((tagName === 'a' || tagName === 'link') && attribs.href) {
+      return attribs.href.trim();
+    } else if (attribs.content) {
+      return attribs.content.trim();
+    } else if (attribs[this.PROP] === 'image' && attribs.src) {
+      return attribs.src.trim();
+    } else {
+      return null;
+    }
+  }
 
-  const onOpenTag = function ({
-    tagName,
-    attrs,
-    selfClosing,
-    sourceCodeLocation,
-  }) {
+  #onOpenTag({ tagName, attrs, selfClosing, sourceCodeLocation }) {
     const attribs = attrs.reduce((acc, current) => {
       acc[current.name] = current.value;
       return acc;
     }, {});
 
-    let currentScope = scopes[scopes.length - 1];
+    let currentScope = this.scopes[this.scopes.length - 1];
     let tag = false;
 
-    if (attribs[TYPE]) {
-      if (attribs[PROP] && currentScope) {
+    if (attribs[this.TYPE]) {
+      if (attribs[this.PROP] && currentScope) {
         let newScope = {};
-        currentScope[attribs[PROP]] = currentScope[attribs[PROP]] || [];
-        currentScope[attribs[PROP]].push(newScope);
+        currentScope[attribs[this.PROP]] =
+          currentScope[attribs[this.PROP]] || [];
+        currentScope[attribs[this.PROP]].push(newScope);
         currentScope = newScope;
       } else {
         currentScope = {};
-        const { type } = getType(attribs[TYPE]);
-        topLevelScope[type] = topLevelScope[type] || [];
-        topLevelScope[type].push(currentScope);
+        const { type } = this.#getType(attribs[this.TYPE]);
+        this.topLevelScope[type] = this.topLevelScope[type] || [];
+        this.topLevelScope[type].push(currentScope);
+
+        // Only add location and source to top level scope, ignore the option for now as the values are needed for @source
+        currentScope['@location'] = sourceCodeLocation.startOffset;
       }
     }
 
     if (currentScope) {
-      if (attribs[TYPE]) {
-        const { context, type } = getType(attribs[TYPE]);
+      if (attribs[this.TYPE]) {
+        const { context, type } = this.#getType(attribs[this.TYPE]);
         const vocab = attribs.vocab;
         currentScope['@context'] = context || vocab;
         currentScope['@type'] = type;
-        currentScope['@location'] = sourceCodeLocation.startOffset;
+
         if (typesWithId.includes(type)) {
-          const id = ID_PROPS.find((prop) => attribs[prop]);
+          const id = this.ID_PROPS.find((prop) => attribs[prop]);
           if (id) {
             currentScope['@id'] = attribs[id];
           }
         }
-        tag = TYPE;
-        scopes.push(currentScope);
-      } else if (attribs[PROP]) {
+        tag = this.TYPE;
+        this.scopes.push(currentScope);
+      } else if (attribs[this.PROP]) {
         if (
-          currentScope[attribs[PROP]] &&
-          !Array.isArray(currentScope[attribs[PROP]])
+          currentScope[attribs[this.PROP]] &&
+          !Array.isArray(currentScope[attribs[this.PROP]])
         ) {
-          // PROP occurs for the second time, storing it as an array
-          currentScope[attribs[PROP]] = [currentScope[attribs[PROP]]];
+          currentScope[attribs[this.PROP]] = [currentScope[attribs[this.PROP]]];
         }
 
-        var value = getPropValue(tagName, attribs, TYPE, PROP);
+        var value = this.#getPropValue(tagName, attribs);
         if (!value) {
-          tag = PROP;
-          if (Array.isArray(currentScope[attribs[PROP]])) {
-            currentScope[attribs[PROP]].push('');
+          tag = this.PROP;
+          if (Array.isArray(currentScope[attribs[this.PROP]])) {
+            currentScope[attribs[this.PROP]].push('');
           } else {
-            currentScope[attribs[PROP]] = '';
+            currentScope[attribs[this.PROP]] = '';
           }
-          textForProp = attribs[PROP];
+          this.textForProp = attribs[this.PROP];
         } else {
-          if (Array.isArray(currentScope[attribs[PROP]])) {
-            currentScope[attribs[PROP]].push(value);
+          if (Array.isArray(currentScope[attribs[this.PROP]])) {
+            currentScope[attribs[this.PROP]].push(value);
           } else {
-            currentScope[attribs[PROP]] = value;
+            currentScope[attribs[this.PROP]] = value;
           }
         }
       }
     }
     if (!selfClosing) {
-      tags.push(tag);
+      this.tags.push(tag);
     }
-  };
+  }
 
-  const onText = function ({ text }) {
-    if (textForProp) {
-      if (Array.isArray(scopes[scopes.length - 1][textForProp])) {
-        scopes[scopes.length - 1][textForProp][
-          scopes[scopes.length - 1][textForProp].length - 1
+  #onText({ text }) {
+    if (this.textForProp) {
+      if (
+        Array.isArray(this.scopes[this.scopes.length - 1][this.textForProp])
+      ) {
+        this.scopes[this.scopes.length - 1][this.textForProp][
+          this.scopes[this.scopes.length - 1][this.textForProp].length - 1
         ] += text.trim();
       } else {
-        scopes[scopes.length - 1][textForProp] += text.trim();
+        this.scopes[this.scopes.length - 1][this.textForProp] += text.trim();
       }
     }
-  };
+  }
 
-  const onCloseTag = function ({ sourceCodeLocation }) {
-    const tag = tags.pop();
-    if (tag === TYPE) {
-      let scope = scopes.pop();
-      scope['@location'] =
-        `${scope['@location']},${sourceCodeLocation.endOffset}`;
+  #onCloseTag({ sourceCodeLocation }) {
+    const tag = this.tags.pop();
+    if (tag === this.TYPE) {
+      let scope = this.scopes.pop();
+
+      if (this.options.embedSource && '@location' in scope) {
+        scope['@source'] = this.html.slice(
+          scope['@location'],
+          sourceCodeLocation.endOffset,
+        );
+      }
+      if (this.options.addLocation && '@location' in scope) {
+        scope['@location'] =
+          `${scope['@location']},${sourceCodeLocation.endOffset}`;
+      } else if (!this.options.addLocation && '@location' in scope) {
+        delete scope['@location'];
+      }
+
       if (!scope['@context']) {
         delete scope['@context'];
       }
@@ -156,25 +183,13 @@ const createHandler = function (specName) {
           scope[key] = scope[key][0];
         }
       });
-    } else if (tag === PROP) {
-      textForProp = false;
+    } else if (tag === this.PROP) {
+      this.textForProp = false;
     }
-  };
+  }
 
-  return {
-    onOpenTag,
-    onText,
-    onCloseTag,
-    topLevelScope,
-  };
-};
-
-export default (html, specName) => {
-  const parser = new HTMLSAXParser();
-  const handler = createHandler(specName);
-  parser.on('startTag', handler.onOpenTag);
-  parser.on('endTag', handler.onCloseTag);
-  parser.on('text', handler.onText);
-  parser.end(html);
-  return handler.topLevelScope;
-};
+  parse() {
+    this.parser.end(this.html);
+    return this.topLevelScope;
+  }
+}
