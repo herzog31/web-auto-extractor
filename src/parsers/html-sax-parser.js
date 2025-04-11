@@ -49,11 +49,57 @@ export class HTMLSAXParser {
     let textStart = 0;
     let inTag = false;
     let inScript = false;
-    let scriptContent = '';
     let scriptStart = 0;
     let inComment = false;
 
     while (pos < html.length) {
+      if (inScript) {
+        // Look for </script> while in script mode, but only at a tag boundary
+        if (
+          html[pos] === '<' &&
+          html.slice(pos, pos + 9).toLowerCase() === '</script>'
+        ) {
+          // Found the end of script
+          const scriptEnd = pos;
+          // Emit the accumulated script content
+          const content = html.slice(scriptStart, scriptEnd).trim();
+          if (content) {
+            this.#emit('text', {
+              text: content,
+              sourceCodeLocation: {
+                startOffset: scriptStart,
+                endOffset: scriptEnd,
+              },
+            });
+          }
+          pos += 9; // Skip past </script>
+          textStart = pos;
+          inScript = false;
+          // Emit the end tag
+          this.#emitEndTag('script', scriptEnd, pos);
+          continue;
+        }
+        pos++;
+        continue;
+      }
+
+      if (inComment) {
+        // Look for --> while in comment mode, but handle nested comment-like structures
+        if (
+          html[pos] === '-' &&
+          pos + 2 < html.length &&
+          html.slice(pos, pos + 3) === '-->'
+        ) {
+          // End of comment
+          inComment = false;
+          pos += 3;
+          textStart = pos;
+          continue;
+        }
+        pos++;
+        continue;
+      }
+
       if (html[pos] === '<') {
         // Check for comments
         if (pos + 3 < html.length && html.slice(pos, pos + 4) === '<!--') {
@@ -78,10 +124,8 @@ export class HTMLSAXParser {
         // Handle any text content before this tag
         if (!inTag && pos > textStart) {
           const text = html.slice(textStart, pos);
-          if (!inScript && !inComment) {
+          if (text.trim()) {
             this.#handleText(text, textStart, pos);
-          } else if (inScript) {
-            scriptContent = text;
           }
         }
         inTag = true;
@@ -131,7 +175,8 @@ export class HTMLSAXParser {
           ) {
             if (!quote) {
               quote = char;
-            } else if (char === quote) {
+            } else if (char === quote && html[pos - 1] !== '\\') {
+              // Only treat quote as closing if it's not escaped
               attrs.push({ name: attrName, value: attrValue });
               inAttr = false;
               inValue = false;
@@ -144,7 +189,17 @@ export class HTMLSAXParser {
           } else if (inAttr && !inValue) {
             attrName += char;
           } else if (inValue && quote) {
-            attrValue += char;
+            if (
+              char === '\\' &&
+              pos + 1 < html.length &&
+              html[pos + 1] === quote
+            ) {
+              // Handle escaped quotes in attribute values
+              attrValue += quote;
+              pos++; // Skip the escape character
+            } else {
+              attrValue += char;
+            }
           } else if (inValue && !quote) {
             // Handle unquoted attribute values
             if (/[\s>]/.test(char)) {
@@ -181,18 +236,6 @@ export class HTMLSAXParser {
 
         // Handle the tag
         if (isEndTag) {
-          if (tagName.toLowerCase() === 'script') {
-            inScript = false;
-            if (scriptContent.trim()) {
-              this.#emit('text', {
-                text: scriptContent,
-                sourceCodeLocation: {
-                  startOffset: scriptStart,
-                  endOffset: tagStart,
-                },
-              });
-            }
-          }
           this.#emitEndTag(tagName, tagStart, pos);
         } else {
           const selfClosing = html[pos - 2] === '/';
@@ -204,7 +247,7 @@ export class HTMLSAXParser {
             )
           ) {
             inScript = true;
-            scriptStart = pos;
+            scriptStart = pos; // Start collecting content after the opening script tag
           }
           // For self-closing tags, include the '/' and '>' in the end offset
           const endPos = pos;
@@ -212,15 +255,6 @@ export class HTMLSAXParser {
           // Update textStart to be after the tag
           textStart = pos;
         }
-      } else if (
-        inComment &&
-        pos + 2 < html.length &&
-        html.slice(pos, pos + 3) === '-->'
-      ) {
-        // End of comment
-        inComment = false;
-        pos += 3;
-        textStart = pos;
       } else {
         pos++;
       }
@@ -229,7 +263,7 @@ export class HTMLSAXParser {
     // Handle any remaining text
     if (pos > textStart) {
       const text = html.slice(textStart, pos);
-      if (!inScript && !inComment) {
+      if (text.trim()) {
         this.#handleText(text, textStart, pos);
       }
     }

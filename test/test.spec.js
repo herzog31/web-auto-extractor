@@ -52,7 +52,7 @@ describe('Web Auto Extractor', () => {
         Product: [
           {
             '@context': 'http://schema.org/',
-            '@location': '38,906',
+            '@location': '35,907',
             '@type': 'Product',
             name: 'Executive Anvil',
             image: 'http://www.example.com/anvil_executive.jpg',
@@ -93,7 +93,7 @@ describe('Web Auto Extractor', () => {
           {
             '@context': 'http://schema.org',
             '@type': 'TheaterEvent',
-            '@location': '38,544',
+            '@location': '35,545',
             name: 'Random Theater Show #1',
             startDate: '2016-12-15T19:30:00-06:00',
             location: {
@@ -103,7 +103,7 @@ describe('Web Auto Extractor', () => {
           },
           {
             '@context': 'http://schema.org',
-            '@location': '38,544',
+            '@location': '35,545',
             '@type': 'TheaterEvent',
             name: 'Random Theater Show #2',
             startDate: '2016-12-16T19:30:00-06:00',
@@ -123,7 +123,7 @@ describe('Web Auto Extractor', () => {
         Movie: [
           {
             '@type': 'Movie',
-            '@location': '38,434',
+            '@location': '35,435',
             name: 'The Matrix',
             director: { '@type': 'Person', name: 'Lana Wachowski' },
           },
@@ -131,7 +131,7 @@ describe('Web Auto Extractor', () => {
         Person: [
           {
             '@type': 'Person',
-            '@location': '38,434',
+            '@location': '35,435',
             name: 'Keanu Reeves',
             actor: { '@type': 'Movie', name: 'The Matrix' },
           },
@@ -146,7 +146,7 @@ describe('Web Auto Extractor', () => {
         Organization: [
           {
             '@context': 'https://schema.org',
-            '@location': '113,534',
+            '@location': '106,539',
             '@type': 'Organization',
             name: 'Tech Corp',
             url: 'https://www.techcorp.com',
@@ -162,7 +162,7 @@ describe('Web Auto Extractor', () => {
         Product: [
           {
             '@context': 'https://schema.org',
-            '@location': '595,1192',
+            '@location': '588,1197',
             '@type': 'Product',
             name: 'Smart Widget Pro',
             description: 'Next generation smart widget with AI capabilities',
@@ -186,20 +186,20 @@ describe('Web Auto Extractor', () => {
       });
 
       const organizationPosition = jsonld.Organization[0]['@location'];
-      assert.equal(organizationPosition, '113,534');
+      assert.equal(organizationPosition, '106,539');
       let [start, end] = organizationPosition.split(',');
 
       // Need to trim as the jsonld is indented
-      const organizationMarkup = jsonld4.substring(start, end);
+      const organizationMarkup = jsonld4.substring(start, end).trim();
       assert.equal(organizationMarkup.startsWith('{'), true);
       assert.equal(organizationMarkup.endsWith('}'), true);
       assert.isTrue(organizationMarkup.includes('"@type": "Organization"'));
 
       const productPosition = jsonld.Product[0]['@location'];
-      assert.equal(productPosition, '595,1192');
+      assert.equal(productPosition, '588,1197');
       [start, end] = productPosition.split(',');
 
-      const productMarkup = jsonld4.substring(start, end);
+      const productMarkup = jsonld4.substring(start, end).trim();
       assert.equal(productMarkup.startsWith('{'), true);
       assert.equal(productMarkup.endsWith('}'), true);
       assert.isTrue(productMarkup.includes('"@type": "Product"'));
@@ -223,6 +223,46 @@ describe('Web Auto Extractor', () => {
       const { jsonld } = extractor.parse(jsonld3);
       assert.isTrue(jsonld.Movie[0]['@source'].includes('@graph'));
       assert.isTrue(jsonld.Person[0]['@source'].includes('@graph'));
+    });
+
+    it('parses JSON-LD with HTML tags in content from jsonld5.html', async () => {
+      const jsonld5 = await fileReader('test/resources/jsonld5.html');
+      const { jsonld } = extractor.parse(jsonld5);
+      assert.deepEqual(jsonld, {
+        Product: [
+          {
+            '@context': 'http://schema.org/',
+            '@location': '35,955',
+            '@type': 'Product',
+            name: 'Premium Widget',
+            image: 'http://www.example.com/premium_widget.jpg',
+            description:
+              'Our <b>Premium Widget</b> is the <i>ultimate solution</i> for your needs. It features <ul><li>Advanced technology</li><li>Durable construction</li><li>Eco-friendly materials</li></ul>',
+            mpn: 'PW-12345',
+            brand: {
+              '@type': 'Thing',
+              name: 'WidgetCo',
+            },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '4.8',
+              reviewCount: '156',
+            },
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'USD',
+              price: '249.99',
+              priceValidUntil: '2023-12-31',
+              itemCondition: 'http://schema.org/NewCondition',
+              availability: 'http://schema.org/InStock',
+              seller: {
+                '@type': 'Organization',
+                name: 'WidgetCo Store',
+              },
+            },
+          },
+        ],
+      });
     });
   });
 

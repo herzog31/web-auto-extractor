@@ -262,6 +262,25 @@ describe('HTMLSAXParser', () => {
       });
     });
 
+    it('should handle HTML tags in HTML comments', () => {
+      const html =
+        '<div><!-- <script>console.log("test");</script> -->Text</div>';
+      parser.end(html);
+
+      // Assume that script tags within comments are not parsed
+      assert.equal(events.startTag.length, 1);
+      assert.equal(events.endTag.length, 1);
+
+      assert.equal(events.text.length, 1);
+      assert.deepEqual(events.text[0], {
+        text: 'Text',
+        sourceCodeLocation: {
+          startOffset: 51,
+          endOffset: 55,
+        },
+      });
+    });
+
     it('should handle DOCTYPE declarations', () => {
       const html = '<!DOCTYPE html><html></html>';
       parser.end(html);
