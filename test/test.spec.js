@@ -253,6 +253,18 @@ describe('Web Auto Extractor', () => {
       );
     });
 
+    it('embeds source code in jsonld using array syntax', async () => {
+      const jsonld4 = await fileReader('test/resources/jsonld4.html');
+      extractor = new WebAutoExtractor({ embedSource: ['jsonld'] });
+      const { jsonld } = extractor.parse(jsonld4);
+      assert.isTrue(
+        jsonld.Product[0]['@source'].includes('"@type": "Product"'),
+      );
+      assert.isTrue(
+        jsonld.Organization[0]['@source'].includes('"@type": "Organization"'),
+      );
+    });
+
     it('embeds source code in jsonld with @graph syntax', async () => {
       const jsonld3 = await fileReader('test/resources/jsonld3.html');
       extractor = new WebAutoExtractor({ embedSource: true });
@@ -325,8 +337,7 @@ describe('Web Auto Extractor', () => {
       assert.deepEqual(jsonld, {});
       assert.equal(errors.length, 1);
       assert.deepEqual(errors[0], {
-        message:
-          "Could not parse JSON-LD",
+        message: 'Could not parse JSON-LD',
         sourceCodeLocation: {
           startOffset: 111,
           endOffset: 256,
@@ -434,6 +445,17 @@ describe('Web Auto Extractor', () => {
     it('embeds source code in rdfa', async () => {
       const rdfa2 = await fileReader('test/resources/rdfa2.html');
       extractor = new WebAutoExtractor({ embedSource: true });
+      const { rdfa } = extractor.parse(rdfa2);
+      assert.isTrue(
+        rdfa.BreadcrumbList[0]['@source'].includes('typeof="BreadcrumbList"'),
+      );
+      assert.isTrue(rdfa.BreadcrumbList[0]['@source'].startsWith('<ol'));
+      assert.isTrue(rdfa.BreadcrumbList[0]['@source'].endsWith('</ol>'));
+    });
+
+    it('embeds source code in rdfa using array syntax', async () => {
+      const rdfa2 = await fileReader('test/resources/rdfa2.html');
+      extractor = new WebAutoExtractor({ embedSource: ['rdfa'] });
       const { rdfa } = extractor.parse(rdfa2);
       assert.isTrue(
         rdfa.BreadcrumbList[0]['@source'].includes('typeof="BreadcrumbList"'),
@@ -613,6 +635,19 @@ describe('Web Auto Extractor', () => {
     it('embeds source code in microdata', async () => {
       const microdata1 = await fileReader('test/resources/microdata1.html');
       extractor = new WebAutoExtractor({ embedSource: true });
+      const { microdata } = extractor.parse(microdata1);
+      assert.isTrue(
+        microdata.Product[0]['@source'].includes(
+          'itemtype="http://schema.org/Product"',
+        ),
+      );
+      assert.isTrue(microdata.Product[0]['@source'].startsWith('<div'));
+      assert.isTrue(microdata.Product[0]['@source'].endsWith('</div>'));
+    });
+
+    it('embeds source code in microdata using array syntax', async () => {
+      const microdata1 = await fileReader('test/resources/microdata1.html');
+      extractor = new WebAutoExtractor({ embedSource: ['microdata'] });
       const { microdata } = extractor.parse(microdata1);
       assert.isTrue(
         microdata.Product[0]['@source'].includes(

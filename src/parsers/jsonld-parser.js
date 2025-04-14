@@ -8,6 +8,7 @@ export default class JsonldParser {
     this.scriptScope = false;
     this.parser = new HTMLSAXParser();
     this.errors = [];
+    this.specName = 'jsonld';
 
     this.parser.on('startTag', this.#onOpenTag.bind(this));
     this.parser.on('text', this.#onText.bind(this));
@@ -46,7 +47,11 @@ export default class JsonldParser {
         if (this.options.addLocation) {
           parsed['@location'] = `${startOffset},${endOffset}`;
         }
-        if (this.options.embedSource) {
+        if (
+          this.options.embedSource === true ||
+          (Array.isArray(this.options.embedSource) &&
+            this.options.embedSource.includes(this.specName))
+        ) {
           parsed['@source'] = this.html.slice(startOffset, endOffset);
         }
       } else {
@@ -54,7 +59,11 @@ export default class JsonldParser {
           if (this.options.addLocation) {
             item['@location'] = `${startOffset},${endOffset}`;
           }
-          if (this.options.embedSource) {
+          if (
+            this.options.embedSource === true ||
+            (Array.isArray(this.options.embedSource) &&
+              this.options.embedSource.includes(this.specName))
+          ) {
             item['@source'] = this.html.slice(startOffset, endOffset);
           }
         });

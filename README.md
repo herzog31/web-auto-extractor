@@ -34,6 +34,7 @@ const parsed = new WebAutoExtractor({
   addLocation: false,
 
   // Embed the source HTML in the root elements in the parsed data using the @source property.
+  // This property is either a boolean to embed sources for all data types or an array of data types to embed sources for.
   embedSource: false,
 }).parse(sampleHTML);
 

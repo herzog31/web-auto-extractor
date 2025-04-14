@@ -13,7 +13,7 @@ const typesWithId = [
 export default class MicroRdfaParser {
   constructor(html, specName, options = {}) {
     this.html = html;
-    this.specName = specName;
+    this.specName = specName.toLowerCase();
     this.options = options;
 
     this.errors = [];
@@ -36,16 +36,16 @@ export default class MicroRdfaParser {
 
   #getAttrNames(specName) {
     let TYPE, PROP, ID_PROPS;
-    if (specName.toLowerCase().startsWith('micro')) {
+    if (specName === 'microdata') {
       TYPE = 'itemtype';
       PROP = 'itemprop';
       ID_PROPS = ['href', 'itemid'];
-    } else if (specName.toLowerCase().startsWith('rdfa')) {
+    } else if (specName === 'rdfa') {
       TYPE = 'typeof';
       PROP = 'property';
       ID_PROPS = ['about', 'href', 'resource'];
     } else {
-      throw new Error('Unsupported spec: use either micro or rdfa');
+      throw new Error('Unsupported spec: use either microdata or rdfa');
     }
     return { TYPE, PROP, ID_PROPS };
   }
@@ -164,7 +164,12 @@ export default class MicroRdfaParser {
     if (tag === this.TYPE) {
       let scope = this.scopes.pop();
 
-      if (this.options.embedSource && '@location' in scope) {
+      if (
+        (this.options.embedSource === true ||
+          (Array.isArray(this.options.embedSource) &&
+            this.options.embedSource.includes(this.specName))) &&
+        '@location' in scope
+      ) {
         scope['@source'] = this.html.slice(
           scope['@location'],
           sourceCodeLocation.endOffset,

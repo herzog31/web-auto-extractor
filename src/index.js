@@ -7,7 +7,7 @@ class WebAutoExtractor {
     this.options = {
       // Add location information to the parsed data in the @location property as comma separated start and end values
       addLocation: false,
-      // Embed the source HTML in the parsed data in the @source property
+      // Embed the source HTML in the parsed data in the @source property. Either boolean or list of data types
       embedSource: false,
       ...options,
     };
@@ -17,7 +17,7 @@ class WebAutoExtractor {
     const { metatags, errors: metatagErrors } = MetaTagsParser(html);
     const { data: microdata, errors: microdataErrors } = new MicroRdfaParser(
       html,
-      'micro',
+      'microdata',
       this.options,
     ).parse();
     const { data: rdfa, errors: rdfaErrors } = new MicroRdfaParser(
