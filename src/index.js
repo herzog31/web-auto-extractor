@@ -1,5 +1,5 @@
 import MetaTagsParser from './parsers/metatag-parser.js';
-import MicroRdfaParser from './parsers/micro-rdfa-parser.js';
+import MicroRdfaParser from './parsers/microdata-rdfa-parser.js';
 import JsonldParser from './parsers/jsonld-parser.js';
 
 class WebAutoExtractor {
