@@ -7,6 +7,7 @@ export default class JsonldParser {
     this.jsonldData = [];
     this.scriptScope = false;
     this.parser = new HTMLSAXParser();
+    this.errors = [];
 
     this.parser.on('startTag', this.#onOpenTag.bind(this));
     this.parser.on('text', this.#onText.bind(this));
@@ -61,7 +62,10 @@ export default class JsonldParser {
 
       this.jsonldData.push(parsed);
     } catch (e) {
-      console.error('Could not parse jsonld', e);
+      this.errors.push({
+        message: 'Could not parse JSON-LD',
+        sourceCodeLocation,
+      });
     }
   }
 
@@ -69,6 +73,20 @@ export default class JsonldParser {
     if (tagName === 'script' && this.scriptScope) {
       this.scriptScope = false;
     }
+  }
+
+  #errorMissingType(item) {
+    const sourceCodeLocation = {};
+    if (item['@location']) {
+      sourceCodeLocation.startOffset = parseInt(
+        item['@location'].split(',')[0],
+      );
+      sourceCodeLocation.endOffset = parseInt(item['@location'].split(',')[1]);
+    }
+    this.errors.push({
+      message: 'JSON-LD object missing @type attribute',
+      sourceCodeLocation,
+    });
   }
 
   #normalizeJsonldData() {
@@ -90,11 +108,21 @@ export default class JsonldParser {
               graphItem['@source'] = item['@source'];
             }
 
+            if (!graphItem['@type']) {
+              this.#errorMissingType(graphItem);
+              return;
+            }
+
             normalizedData[graphItem['@type']] =
               normalizedData[graphItem['@type']] || [];
             normalizedData[graphItem['@type']].push(graphItem);
           });
         } else {
+          if (!item['@type']) {
+            this.#errorMissingType(item);
+            return;
+          }
+
           normalizedData[item['@type']] = normalizedData[item['@type']] || [];
           normalizedData[item['@type']].push(item);
         }
@@ -106,6 +134,6 @@ export default class JsonldParser {
 
   parse() {
     this.parser.end(this.html);
-    return this.#normalizeJsonldData();
+    return { jsonld: this.#normalizeJsonldData(), errors: this.errors };
   }
 }

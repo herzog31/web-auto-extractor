@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <title>JSON-LD Missing Type Test</title>
+    <script type="application/ld+json">
+      {
+        "@context": "http://schema.org/",
+        "name": "Product Without Type",
+        "description": "This is a product without a @type attribute",
+        "brand": {
+          "@type": "Brand",
+          "name": "TestBrand"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Test Page</h1>
+    <p>This page contains a JSON-LD script without a @type attribute.</p>
+  </body>
+</html>

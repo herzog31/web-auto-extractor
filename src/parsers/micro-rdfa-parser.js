@@ -16,6 +16,8 @@ export default class MicroRdfaParser {
     this.specName = specName;
     this.options = options;
 
+    this.errors = [];
+
     this.scopes = [];
     this.tags = [];
     this.topLevelScope = {};
@@ -190,6 +192,6 @@ export default class MicroRdfaParser {
 
   parse() {
     this.parser.end(this.html);
-    return this.topLevelScope;
+    return { data: this.topLevelScope, errors: this.errors };
   }
 }

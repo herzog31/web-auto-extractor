@@ -14,11 +14,33 @@ class WebAutoExtractor {
   }
 
   parse(html) {
+    const { metatags, errors: metatagErrors } = MetaTagsParser(html);
+    const { data: microdata, errors: microdataErrors } = new MicroRdfaParser(
+      html,
+      'micro',
+      this.options,
+    ).parse();
+    const { data: rdfa, errors: rdfaErrors } = new MicroRdfaParser(
+      html,
+      'rdfa',
+      this.options,
+    ).parse();
+    const { jsonld, errors: jsonldErrors } = new JsonldParser(
+      html,
+      this.options,
+    ).parse();
+
     return {
-      metatags: MetaTagsParser(html),
-      microdata: new MicroRdfaParser(html, 'micro', this.options).parse(),
-      rdfa: new MicroRdfaParser(html, 'rdfa', this.options).parse(),
-      jsonld: new JsonldParser(html, this.options).parse(),
+      metatags,
+      microdata,
+      rdfa,
+      jsonld,
+      errors: [
+        ...metatagErrors,
+        ...microdataErrors,
+        ...rdfaErrors,
+        ...jsonldErrors,
+      ],
     };
   }
 }

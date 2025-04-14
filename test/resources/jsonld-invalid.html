@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Invalid JSON-LD Test</title>
+    <script type="application/ld+json">
+      {
+        "@context": "http://schema.org/",
+        "@type": "Product",
+        "invalidProperty": [1, 2, 3, "unclosed array"
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Test Page</h1>
+    <p>This page contains invalid JSON-LD that cannot be parsed.</p>
+  </body>
+</html>

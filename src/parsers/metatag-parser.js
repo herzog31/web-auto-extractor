@@ -1,12 +1,13 @@
 import { HTMLSAXParser } from './html-sax-parser.js';
 
 export default (html) => {
-  const metatagsData = {};
+  const metatags = {};
+  const errors = [];
   let currentTitle = null;
 
   const parser = new HTMLSAXParser();
 
-  parser.on('startTag', ({ tagName, attrs }) => {
+  parser.on('startTag', ({ tagName, attrs, sourceCodeLocation }) => {
     if (tagName === 'meta') {
       // Convert attrs array to object for easier access
       const attribs = attrs.reduce((acc, current) => {
@@ -26,11 +27,16 @@ export default (html) => {
       const value = attribs['content'];
 
       if (value !== undefined) {
-        if (!metatagsData[name]) {
-          metatagsData[name] = [];
+        if (!metatags[name]) {
+          metatags[name] = [];
         }
 
-        metatagsData[name].push(value);
+        metatags[name].push(value);
+      } else {
+        errors.push({
+          message: `Meta tag "${name}" has no content`,
+          sourceCodeLocation,
+        });
       }
     } else if (tagName === 'title') {
       currentTitle = '';
@@ -45,15 +51,15 @@ export default (html) => {
 
   parser.on('endTag', ({ tagName }) => {
     if (tagName === 'title') {
-      if (!metatagsData.title) {
-        metatagsData.title = [];
+      if (!metatags.title) {
+        metatags.title = [];
       }
-      metatagsData.title.push(currentTitle.trim());
+      metatags.title.push(currentTitle.trim());
       currentTitle = null;
     }
   });
 
   parser.end(html);
 
-  return metatagsData;
+  return { metatags: metatags, errors };
 };

@@ -46,8 +46,17 @@ describe('Web Auto Extractor', () => {
 
     it('handles meta tag with missing content attribute', async () => {
       const missingContent = `<meta name="description">`;
-      const { metatags } = extractor.parse(missingContent);
+      const { metatags, errors } = extractor.parse(missingContent);
       assert.deepEqual(metatags, {});
+
+      assert.equal(errors.length, 1);
+      assert.deepEqual(errors[0], {
+        message: 'Meta tag "description" has no content',
+        sourceCodeLocation: {
+          startOffset: 0,
+          endOffset: 25,
+        },
+      });
     });
 
     it('handles meta tag with empty content attribute', async () => {
@@ -289,6 +298,39 @@ describe('Web Auto Extractor', () => {
             },
           },
         ],
+      });
+    });
+
+    it('handles JSON-LD with missing @type attribute', async () => {
+      const jsonldMissingType = await fileReader(
+        'test/resources/jsonld-missing-type.html',
+      );
+      const { jsonld, errors } = extractor.parse(jsonldMissingType);
+      assert.deepEqual(jsonld, {});
+      assert.equal(errors.length, 1);
+      assert.deepEqual(errors[0], {
+        message: 'JSON-LD object missing @type attribute',
+        sourceCodeLocation: {
+          startOffset: 116,
+          endOffset: 376,
+        },
+      });
+    });
+
+    it('handles invalid JSON-LD that cannot be parsed', async () => {
+      const jsonldInvalid = await fileReader(
+        'test/resources/jsonld-invalid.html',
+      );
+      const { jsonld, errors } = extractor.parse(jsonldInvalid);
+      assert.deepEqual(jsonld, {});
+      assert.equal(errors.length, 1);
+      assert.deepEqual(errors[0], {
+        message:
+          "Could not parse JSON-LD",
+        sourceCodeLocation: {
+          startOffset: 111,
+          endOffset: 256,
+        },
       });
     });
   });

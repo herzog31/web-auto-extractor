@@ -15,4 +15,9 @@ export default [
   {
     ignores: ['dist/*'],
   },
+  {
+    rules: {
+      'no-unused-vars': ['error', { 'caughtErrors': 'none' }]
+    }
+  }
 ];
