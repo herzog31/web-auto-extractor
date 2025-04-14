@@ -40,6 +40,33 @@ describe('Web Auto Extractor', () => {
       const { metatags } = extractor.parse(rdfa1);
       assert.deepEqual(metatags, {
         priceCurrency: ['USD'],
+        title: ['Executive Anvil'],
+      });
+    });
+
+    it('handles meta tag with missing content attribute', async () => {
+      const missingContent = `<meta name="description">`;
+      const { metatags } = extractor.parse(missingContent);
+      assert.deepEqual(metatags, {});
+    });
+
+    it('handles meta tag with empty content attribute', async () => {
+      const emptyContent = `<meta name="keywords" content="">`;
+      const { metatags } = extractor.parse(emptyContent);
+      assert.deepEqual(metatags, {
+        keywords: [''],
+      });
+    });
+
+    it('parses both meta tag and title tag', async () => {
+      const htmlWithMetaAndTitle = `
+        <meta name="description" content="A test page">
+        <title>Test Page Title</title>
+      `;
+      const { metatags } = extractor.parse(htmlWithMetaAndTitle);
+      assert.deepEqual(metatags, {
+        description: ['A test page'],
+        title: ['Test Page Title'],
       });
     });
   });
