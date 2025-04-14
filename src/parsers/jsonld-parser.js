@@ -86,15 +86,19 @@ export default class JsonldParser {
 
   #errorMissingType(item) {
     const sourceCodeLocation = {};
+    const source = { ...item };
     if (item['@location']) {
       sourceCodeLocation.startOffset = parseInt(
         item['@location'].split(',')[0],
       );
       sourceCodeLocation.endOffset = parseInt(item['@location'].split(',')[1]);
+      delete source['@location'];
     }
+
     this.errors.push({
       message: 'JSON-LD object missing @type attribute',
       sourceCodeLocation,
+      source: JSON.stringify(source),
     });
   }
 

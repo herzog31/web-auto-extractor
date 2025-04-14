@@ -250,6 +250,8 @@ describe('JSON-LD Parser', () => {
     assert.equal(errors.length, 1);
     assert.deepEqual(errors[0], {
       message: 'JSON-LD object missing @type attribute',
+      source:
+        '{"@context":"http://schema.org/","name":"Product Without Type","description":"This is a product without a @type attribute","brand":{"@type":"Brand","name":"TestBrand"}}',
       sourceCodeLocation: {
         startOffset: 116,
         endOffset: 376,
