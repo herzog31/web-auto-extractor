@@ -4,11 +4,14 @@ export default (html) => {
   const metatags = {};
   const errors = [];
   let currentTitle = null;
+  let inHead = false;
 
   const parser = new HTMLSAXParser();
 
   parser.on('startTag', ({ tagName, attrs, sourceCodeLocation }) => {
-    if (tagName === 'meta') {
+    if (tagName === 'head') {
+      inHead = true;
+    } else if (tagName === 'meta' && inHead) {
       // Convert attrs array to object for easier access
       const attribs = attrs.reduce((acc, current) => {
         acc[current.name] = current.value;
@@ -38,7 +41,7 @@ export default (html) => {
           sourceCodeLocation,
         });
       }
-    } else if (tagName === 'title') {
+    } else if (tagName === 'title' && inHead) {
       currentTitle = '';
     }
   });
@@ -50,7 +53,9 @@ export default (html) => {
   });
 
   parser.on('endTag', ({ tagName }) => {
-    if (tagName === 'title') {
+    if (tagName === 'head') {
+      inHead = false;
+    } else if (tagName === 'title' && inHead) {
       if (!metatags.title) {
         metatags.title = [];
       }

@@ -20,7 +20,7 @@ describe('RDFa Parser', () => {
       Product: [
         {
           '@context': 'http://schema.org/',
-          '@location': '75,1520',
+          '@location': '127,1572',
           '@type': 'Product',
           brand: 'ACME',
           name: 'Executive Anvil',
@@ -94,7 +94,7 @@ describe('RDFa Parser', () => {
     const { rdfa } = extractor.parse(rdfa1);
 
     const productPosition = rdfa.Product[0]['@location'];
-    assert.equal(productPosition, '75,1520');
+    assert.equal(productPosition, '127,1572');
     let [start, end] = productPosition.split(',');
 
     const productMarkup = rdfa1.substring(start, end);
