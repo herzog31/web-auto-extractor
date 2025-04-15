@@ -204,4 +204,41 @@ describe('Microdata Parser', () => {
     assert.isTrue(microdata.Product[0]['@source'].startsWith('<div'));
     assert.isTrue(microdata.Product[0]['@source'].endsWith('</div>'));
   });
+
+  it('parses nested BreadcrumbList structure with self-closing tags', async () => {
+    const microdata4 = await fileReader('test/resources/microdata4.html');
+    const { microdata } = extractor.parse(microdata4);
+
+    assert.deepEqual(microdata, {
+      BreadcrumbList: [
+        {
+          '@context': 'http://schema.org/',
+          '@location': '316,1501',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@context': 'http://schema.org/',
+              '@type': 'ListItem',
+              item: '/home.html',
+              name: 'Home',
+              position: '1',
+            },
+            {
+              '@context': 'http://schema.org/',
+              '@type': 'ListItem',
+              item: '/things-to-do.html',
+              name: 'Things To Do',
+              position: '2',
+            },
+            {
+              '@context': 'http://schema.org/',
+              '@type': 'ListItem',
+              name: "REESE'S Stuff Your Cup",
+              position: '3',
+            },
+          ],
+        },
+      ],
+    });
+  });
 });

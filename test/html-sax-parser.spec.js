@@ -86,6 +86,35 @@ describe('HTMLSAXParser', () => {
         },
       });
     });
+
+    it('should handle self-closing tags without closing slash', () => {
+      const html = '<div><img src="test.jpg"><br></div>';
+      parser.end(html);
+
+      assert.equal(events.startTag.length, 3);
+      assert.equal(events.endTag.length, 1);
+
+      // Check self-closing tags
+      assert.deepEqual(events.startTag[1], {
+        tagName: 'img',
+        attrs: [{ name: 'src', value: 'test.jpg' }],
+        selfClosing: true,
+        sourceCodeLocation: {
+          startOffset: 5,
+          endOffset: 25,
+        },
+      });
+
+      assert.deepEqual(events.startTag[2], {
+        tagName: 'br',
+        attrs: [],
+        selfClosing: true,
+        sourceCodeLocation: {
+          startOffset: 25,
+          endOffset: 29,
+        },
+      });
+    });
   });
 
   describe('Attribute parsing', () => {

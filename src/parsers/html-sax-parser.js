@@ -5,6 +5,28 @@ export class HTMLSAXParser {
     this._currentTagStartPos = 0;
     this._currentTagEndPos = 0;
     this._lastTextEndPos = 0;
+
+    // List of known void elements (self-closing tags) in HTML5
+    this._voidElements = new Set([
+      'area',
+      'base',
+      'br',
+      'col',
+      'embed',
+      'hr',
+      'img',
+      'input',
+      'link',
+      'meta',
+      'param',
+      'source',
+      'track',
+      'wbr',
+      'command',
+      'keygen',
+      'menuitem',
+      'frame',
+    ]);
   }
 
   #emit(event, ...args) {
@@ -238,7 +260,12 @@ export class HTMLSAXParser {
         if (isEndTag) {
           this.#emitEndTag(tagName, tagStart, pos);
         } else {
-          const selfClosing = html[pos - 2] === '/';
+          // Check if it's a self-closing tag either by explicit /> notation
+          // or by being a known void element
+          const hasExplicitSelfClosing = html[pos - 2] === '/';
+          const isVoidElement = this._voidElements.has(tagName.toLowerCase());
+          const selfClosing = hasExplicitSelfClosing || isVoidElement;
+
           if (
             tagName.toLowerCase() === 'script' &&
             attrs.find(
