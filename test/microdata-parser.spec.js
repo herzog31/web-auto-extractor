@@ -15,7 +15,7 @@ describe('Microdata Parser', () => {
 
   it('parses Microdata from microdata1.html', async () => {
     const microdata1 = await fileReader('test/resources/microdata1.html');
-    const { microdata } = extractor.parse(microdata1);
+    const { microdata, errors } = extractor.parse(microdata1);
     assert.deepEqual(microdata, {
       Product: [
         {
@@ -51,11 +51,12 @@ describe('Microdata Parser', () => {
         },
       ],
     });
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
   });
 
   it('parses Microdata from microdata2.html', async () => {
     const microdata2 = await fileReader('test/resources/microdata2.html');
-    const { microdata } = extractor.parse(microdata2);
+    const { microdata, errors } = extractor.parse(microdata2);
     assert.deepEqual(microdata, {
       Recipe: [
         {
@@ -94,11 +95,12 @@ describe('Microdata Parser', () => {
         },
       ],
     });
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
   });
 
   it('parses @id fields from href attributes in item scopes', async () => {
     const microdata3 = await fileReader('test/resources/microdata3.html');
-    const { microdata } = extractor.parse(microdata3);
+    const { microdata, errors } = extractor.parse(microdata3);
     assert.deepEqual(microdata, {
       BreadcrumbList: [
         {
@@ -155,11 +157,12 @@ describe('Microdata Parser', () => {
         },
       ],
     });
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
   });
 
   it('adds location information of the parsed data', async () => {
     const microdata3 = await fileReader('test/resources/microdata3.html');
-    const { microdata } = extractor.parse(microdata3);
+    const { microdata, errors } = extractor.parse(microdata3);
 
     const breadcrumbPosition = microdata.BreadcrumbList[0]['@location'];
     assert.equal(breadcrumbPosition, '72,1298');
@@ -177,12 +180,13 @@ describe('Microdata Parser', () => {
       ),
       '</ol>',
     );
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
   });
 
   it('embeds source code in microdata', async () => {
     const microdata1 = await fileReader('test/resources/microdata1.html');
     extractor = new WebAutoExtractor({ embedSource: true });
-    const { microdata } = extractor.parse(microdata1);
+    const { microdata, errors } = extractor.parse(microdata1);
     assert.isTrue(
       microdata.Product[0]['@source'].includes(
         'itemtype="http://schema.org/Product"',
@@ -190,12 +194,13 @@ describe('Microdata Parser', () => {
     );
     assert.isTrue(microdata.Product[0]['@source'].startsWith('<div'));
     assert.isTrue(microdata.Product[0]['@source'].endsWith('</div>'));
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
   });
 
   it('embeds source code in microdata using array syntax', async () => {
     const microdata1 = await fileReader('test/resources/microdata1.html');
     extractor = new WebAutoExtractor({ embedSource: ['microdata'] });
-    const { microdata } = extractor.parse(microdata1);
+    const { microdata, errors } = extractor.parse(microdata1);
     assert.isTrue(
       microdata.Product[0]['@source'].includes(
         'itemtype="http://schema.org/Product"',
@@ -203,11 +208,12 @@ describe('Microdata Parser', () => {
     );
     assert.isTrue(microdata.Product[0]['@source'].startsWith('<div'));
     assert.isTrue(microdata.Product[0]['@source'].endsWith('</div>'));
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
   });
 
   it('parses nested BreadcrumbList structure with self-closing tags', async () => {
     const microdata4 = await fileReader('test/resources/microdata4.html');
-    const { microdata } = extractor.parse(microdata4);
+    const { microdata, errors } = extractor.parse(microdata4);
 
     assert.deepEqual(microdata, {
       BreadcrumbList: [
@@ -237,6 +243,52 @@ describe('Microdata Parser', () => {
               position: '3',
             },
           ],
+        },
+      ],
+    });
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
+  });
+
+  it('parses an ImageObject with content from src', async () => {
+    const { microdata, errors } =
+      extractor.parse(`<div itemscope itemtype="http://schema.org/ImageObject">
+        <img src="my-image.jpg" itemprop="contentUrl" alt="My image">
+    </div>`);
+
+    assert.deepEqual(microdata, {
+      ImageObject: [
+        {
+          '@location': '0,137',
+          '@context': 'http://schema.org/',
+          '@type': 'ImageObject',
+          contentUrl: 'my-image.jpg',
+        },
+      ],
+    });
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
+  });
+
+  it('adds an error if src is not set', async () => {
+    const { microdata, errors } =
+      extractor.parse(`<div itemscope itemtype="http://schema.org/ImageObject">
+        <img itemprop="contentUrl" alt="My image">
+    </div>`);
+
+    assert.deepEqual(errors, [
+      {
+        message: 'No value found for img tag',
+        sourceCodeLocation: { startOffset: 65, endOffset: 107 },
+        source: '<img itemprop="contentUrl" alt="My image">',
+      },
+    ]);
+
+    assert.deepEqual(microdata, {
+      ImageObject: [
+        {
+          '@location': '0,118',
+          '@context': 'http://schema.org/',
+          '@type': 'ImageObject',
+          contentUrl: '',
         },
       ],
     });

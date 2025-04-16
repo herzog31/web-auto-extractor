@@ -15,7 +15,8 @@ describe('RDFa Parser', () => {
 
   it('parses RDFa from rdfa1.html', async () => {
     const rdfa1 = await fileReader('test/resources/rdfa1.html');
-    const { rdfa } = extractor.parse(rdfa1);
+    const { rdfa, errors } = extractor.parse(rdfa1);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(rdfa, {
       Product: [
         {
@@ -52,7 +53,8 @@ describe('RDFa Parser', () => {
 
   it('parses @id fields from href attributes in a tags', async () => {
     const rdfa2 = await fileReader('test/resources/rdfa2.html');
-    const { rdfa } = extractor.parse(rdfa2);
+    const { rdfa, errors } = extractor.parse(rdfa2);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(rdfa, {
       BreadcrumbList: [
         {
@@ -91,7 +93,8 @@ describe('RDFa Parser', () => {
 
   it('adds location information of the parsed data', async () => {
     const rdfa1 = await fileReader('test/resources/rdfa1.html');
-    const { rdfa } = extractor.parse(rdfa1);
+    const { rdfa, errors } = extractor.parse(rdfa1);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
 
     const productPosition = rdfa.Product[0]['@location'];
     assert.equal(productPosition, '127,1572');
@@ -111,7 +114,8 @@ describe('RDFa Parser', () => {
   it('embeds source code in rdfa', async () => {
     const rdfa2 = await fileReader('test/resources/rdfa2.html');
     extractor = new WebAutoExtractor({ embedSource: true });
-    const { rdfa } = extractor.parse(rdfa2);
+    const { rdfa, errors } = extractor.parse(rdfa2);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.isTrue(
       rdfa.BreadcrumbList[0]['@source'].includes('typeof="BreadcrumbList"'),
     );
@@ -122,7 +126,8 @@ describe('RDFa Parser', () => {
   it('embeds source code in rdfa using array syntax', async () => {
     const rdfa2 = await fileReader('test/resources/rdfa2.html');
     extractor = new WebAutoExtractor({ embedSource: ['rdfa'] });
-    const { rdfa } = extractor.parse(rdfa2);
+    const { rdfa, errors } = extractor.parse(rdfa2);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.isTrue(
       rdfa.BreadcrumbList[0]['@source'].includes('typeof="BreadcrumbList"'),
     );

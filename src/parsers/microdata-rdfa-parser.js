@@ -58,15 +58,21 @@ export default class MicroRdfaParser {
     };
   }
 
-  #getPropValue(tagName, attribs) {
+  #getPropValue(tagName, selfClosing, attribs) {
     if (attribs[this.TYPE]) {
       return null;
-    } else if ((tagName === 'a' || tagName === 'link') && attribs.href) {
+    } else if (tagName === 'a' && attribs.href) {
       return attribs.href.trim();
+    } else if (selfClosing) {
+      const properties = ['src', 'content', 'href', 'resource'];
+      const key = properties.find((property) => attribs[property]);
+      if (key && attribs[key]) {
+        return attribs[key].trim();
+      } else {
+        throw new Error(`No value found for ${tagName} tag`);
+      }
     } else if (attribs.content) {
       return attribs.content.trim();
-    } else if (attribs[this.PROP] === 'image' && attribs.src) {
-      return attribs.src.trim();
     } else {
       return null;
     }
@@ -122,7 +128,19 @@ export default class MicroRdfaParser {
           currentScope[attribs[this.PROP]] = [currentScope[attribs[this.PROP]]];
         }
 
-        var value = this.#getPropValue(tagName, attribs);
+        let value = null;
+        try {
+          value = this.#getPropValue(tagName, selfClosing, attribs);
+        } catch (error) {
+          this.errors.push({
+            message: error.message,
+            sourceCodeLocation,
+            source: this.html.slice(
+              sourceCodeLocation.startOffset,
+              sourceCodeLocation.endOffset,
+            ),
+          });
+        }
         if (!value) {
           tag = this.PROP;
           if (Array.isArray(currentScope[attribs[this.PROP]])) {

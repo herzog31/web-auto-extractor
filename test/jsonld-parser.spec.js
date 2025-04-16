@@ -15,7 +15,8 @@ describe('JSON-LD Parser', () => {
 
   it('parses JSON-LD from jsonld1.html', async () => {
     const jsonld1 = await fileReader('test/resources/jsonld1.html');
-    const { jsonld } = extractor.parse(jsonld1);
+    const { jsonld, errors } = extractor.parse(jsonld1);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(jsonld, {
       Product: [
         {
@@ -55,7 +56,8 @@ describe('JSON-LD Parser', () => {
 
   it('parses JSON-LD from jsonld2.html', async () => {
     const jsonld2 = await fileReader('test/resources/jsonld2.html');
-    const { jsonld } = extractor.parse(jsonld2);
+    const { jsonld, errors } = extractor.parse(jsonld2);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(jsonld, {
       TheaterEvent: [
         {
@@ -86,7 +88,8 @@ describe('JSON-LD Parser', () => {
 
   it('parses @graph syntax from jsonld3.html', async () => {
     const jsonld3 = await fileReader('test/resources/jsonld3.html');
-    const { jsonld } = extractor.parse(jsonld3);
+    const { jsonld, errors } = extractor.parse(jsonld3);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(jsonld, {
       Movie: [
         {
@@ -109,7 +112,8 @@ describe('JSON-LD Parser', () => {
 
   it('parses the position from jsonld4.html', async () => {
     const jsonld4 = await fileReader('test/resources/jsonld4.html');
-    const { jsonld } = extractor.parse(jsonld4);
+    const { jsonld, errors } = extractor.parse(jsonld4);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(jsonld, {
       Organization: [
         {
@@ -176,7 +180,8 @@ describe('JSON-LD Parser', () => {
   it('embeds source code in jsonld', async () => {
     const jsonld4 = await fileReader('test/resources/jsonld4.html');
     extractor = new WebAutoExtractor({ embedSource: true });
-    const { jsonld } = extractor.parse(jsonld4);
+    const { jsonld, errors } = extractor.parse(jsonld4);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.isTrue(jsonld.Product[0]['@source'].includes('"@type": "Product"'));
     assert.isTrue(
       jsonld.Organization[0]['@source'].includes('"@type": "Organization"'),
@@ -186,7 +191,8 @@ describe('JSON-LD Parser', () => {
   it('embeds source code in jsonld using array syntax', async () => {
     const jsonld4 = await fileReader('test/resources/jsonld4.html');
     extractor = new WebAutoExtractor({ embedSource: ['jsonld'] });
-    const { jsonld } = extractor.parse(jsonld4);
+    const { jsonld, errors } = extractor.parse(jsonld4);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.isTrue(jsonld.Product[0]['@source'].includes('"@type": "Product"'));
     assert.isTrue(
       jsonld.Organization[0]['@source'].includes('"@type": "Organization"'),
@@ -196,14 +202,16 @@ describe('JSON-LD Parser', () => {
   it('embeds source code in jsonld with @graph syntax', async () => {
     const jsonld3 = await fileReader('test/resources/jsonld3.html');
     extractor = new WebAutoExtractor({ embedSource: true });
-    const { jsonld } = extractor.parse(jsonld3);
+    const { jsonld, errors } = extractor.parse(jsonld3);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.isTrue(jsonld.Movie[0]['@source'].includes('@graph'));
     assert.isTrue(jsonld.Person[0]['@source'].includes('@graph'));
   });
 
   it('parses JSON-LD with HTML tags in content from jsonld5.html', async () => {
     const jsonld5 = await fileReader('test/resources/jsonld5.html');
-    const { jsonld } = extractor.parse(jsonld5);
+    const { jsonld, errors } = extractor.parse(jsonld5);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(jsonld, {
       Product: [
         {
