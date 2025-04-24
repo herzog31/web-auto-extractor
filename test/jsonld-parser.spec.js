@@ -258,6 +258,7 @@ describe('JSON-LD Parser', () => {
     assert.equal(errors.length, 1);
     assert.deepEqual(errors[0], {
       message: 'JSON-LD object missing @type attribute',
+      format: 'jsonld',
       source:
         '{"@context":"http://schema.org/","name":"Product Without Type","description":"This is a product without a @type attribute","brand":{"@type":"Brand","name":"TestBrand"}}',
       sourceCodeLocation: {
@@ -276,6 +277,8 @@ describe('JSON-LD Parser', () => {
     assert.equal(errors.length, 1);
     assert.deepEqual(errors[0], {
       message: 'Could not parse JSON-LD',
+      format: 'jsonld',
+      source: jsonldInvalid.substring(118, 251),
       sourceCodeLocation: {
         startOffset: 111,
         endOffset: 256,

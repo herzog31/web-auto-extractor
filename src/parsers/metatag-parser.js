@@ -38,6 +38,7 @@ export default (html) => {
       } else {
         errors.push({
           message: `Meta tag "${name}" has no content`,
+          format: 'metatags',
           sourceCodeLocation,
         });
       }

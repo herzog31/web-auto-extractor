@@ -73,6 +73,8 @@ export default class JsonldParser {
     } catch (e) {
       this.errors.push({
         message: 'Could not parse JSON-LD',
+        format: 'jsonld',
+        source: text,
         sourceCodeLocation,
       });
     }
@@ -97,6 +99,7 @@ export default class JsonldParser {
 
     this.errors.push({
       message: 'JSON-LD object missing @type attribute',
+      format: 'jsonld',
       sourceCodeLocation,
       source: JSON.stringify(source),
     });

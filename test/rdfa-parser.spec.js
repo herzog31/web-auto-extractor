@@ -134,4 +134,32 @@ describe('RDFa Parser', () => {
     assert.isTrue(rdfa.BreadcrumbList[0]['@source'].startsWith('<ol'));
     assert.isTrue(rdfa.BreadcrumbList[0]['@source'].endsWith('</ol>'));
   });
+
+  it('adds an error if src is not set for image', async () => {
+    const { rdfa, errors } = extractor.parse(
+      `<div vocab="http://schema.org/" typeof="ImageObject">
+        <img property="contentUrl" alt="My image">
+      </div>`,
+    );
+
+    assert.deepEqual(errors, [
+      {
+        message: 'No value found for img tag',
+        format: 'rdfa',
+        sourceCodeLocation: { startOffset: 62, endOffset: 104 },
+        source: '<img property="contentUrl" alt="My image">',
+      },
+    ]);
+
+    assert.deepEqual(rdfa, {
+      ImageObject: [
+        {
+          '@location': '0,117',
+          '@context': 'http://schema.org/',
+          '@type': 'ImageObject',
+          contentUrl: '',
+        },
+      ],
+    });
+  });
 });

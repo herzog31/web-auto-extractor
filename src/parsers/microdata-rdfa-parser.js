@@ -134,6 +134,7 @@ export default class MicroRdfaParser {
         } catch (error) {
           this.errors.push({
             message: error.message,
+            format: this.specName,
             sourceCodeLocation,
             source: this.html.slice(
               sourceCodeLocation.startOffset,

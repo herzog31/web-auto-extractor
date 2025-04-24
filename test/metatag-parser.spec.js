@@ -15,13 +15,15 @@ describe('Meta Tags', () => {
 
   it('skips meta tags outside of <head>in microdata notation', async () => {
     const microdata1 = await fileReader('test/resources/microdata1.html');
-    const { metatags } = extractor.parse(microdata1);
+    const { metatags, errors } = extractor.parse(microdata1);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(metatags, {});
   });
 
   it('parses meta tags from rdfa1.html', async () => {
     const rdfa1 = await fileReader('test/resources/rdfa1.html');
-    const { metatags } = extractor.parse(rdfa1);
+    const { metatags, errors } = extractor.parse(rdfa1);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(metatags, {
       priceCurrency: ['USD'],
       title: ['Executive Anvil'],
@@ -36,6 +38,7 @@ describe('Meta Tags', () => {
     assert.equal(errors.length, 1);
     assert.deepEqual(errors[0], {
       message: 'Meta tag "description" has no content',
+      format: 'metatags',
       sourceCodeLocation: {
         startOffset: 6,
         endOffset: 31,
@@ -45,7 +48,8 @@ describe('Meta Tags', () => {
 
   it('handles meta tag with empty content attribute', async () => {
     const emptyContent = `<head><meta name="keywords" content=""></head>`;
-    const { metatags } = extractor.parse(emptyContent);
+    const { metatags, errors } = extractor.parse(emptyContent);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(metatags, {
       keywords: [''],
     });
@@ -56,7 +60,8 @@ describe('Meta Tags', () => {
       <meta name="description" content="A test page">
       <title>Test Page Title</title>
     </head>`;
-    const { metatags } = extractor.parse(htmlWithMetaAndTitle);
+    const { metatags, errors } = extractor.parse(htmlWithMetaAndTitle);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
     assert.deepEqual(metatags, {
       description: ['A test page'],
       title: ['Test Page Title'],

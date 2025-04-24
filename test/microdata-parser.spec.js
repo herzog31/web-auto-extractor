@@ -277,6 +277,7 @@ describe('Microdata Parser', () => {
     assert.deepEqual(errors, [
       {
         message: 'No value found for img tag',
+        format: 'microdata',
         sourceCodeLocation: { startOffset: 65, endOffset: 107 },
         source: '<img itemprop="contentUrl" alt="My image">',
       },
