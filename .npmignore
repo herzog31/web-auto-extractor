@@ -1,2 +1,8 @@
 src
 test
+.github
+.parcel-cache
+coverage
+eslint.config.js
+.prettierignore
+.c8rc
