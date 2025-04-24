@@ -13,7 +13,7 @@ export default [
   },
   pluginJs.configs.recommended,
   {
-    ignores: ['dist/*'],
+    ignores: ['dist/*', 'coverage/*'],
   },
   {
     rules: {
