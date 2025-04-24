@@ -9,7 +9,7 @@
   "scripts": {
     "start": "parcel src/index.js",
     "build": "parcel build src/index.js",
-    "test": "mocha --recursive",
+    "test": "c8 mocha --recursive",
     "lint": "eslint .",
     "format": "prettier --single-quote --check .",
     "format:fix": "prettier --single-quote --write .",
@@ -21,6 +21,7 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "c8": "^9.1.0",
     "chai": "^5.2.0",
     "eslint": "^9.22.0",
     "globals": "^16.0.0",
