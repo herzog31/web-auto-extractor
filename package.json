@@ -13,7 +13,9 @@
     "lint": "eslint .",
     "format": "prettier --single-quote --check .",
     "format:fix": "prettier --single-quote --write .",
-    "prepublish": "npm run lint && npm run format && npm run test && npm run build"
+    "prepublish": "npm run lint && npm run format && npm run test && npm run build",
+    "semantic-release": "semantic-release",
+    "semantic-release-dry": "semantic-release --dry-run --no-ci --branches $CI_BRANCH"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -21,13 +23,18 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.2",
     "c8": "^9.1.0",
     "chai": "^5.2.0",
     "eslint": "^9.22.0",
     "globals": "^16.0.0",
     "mocha": "^11.1.0",
     "parcel": "^2.14.0",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "semantic-release": "^22.0.7"
   },
   "keywords": [
     "crawler",
