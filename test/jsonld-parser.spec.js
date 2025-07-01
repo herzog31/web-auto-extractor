@@ -94,17 +94,29 @@ describe('JSON-LD Parser', () => {
       Movie: [
         {
           '@type': 'Movie',
-          '@location': '35,435',
+          '@location': '35,534',
           name: 'The Matrix',
           director: { '@type': 'Person', name: 'Lana Wachowski' },
+        },
+        {
+          '@type': ['Movie', 'CreativeWork'],
+          '@location': '35,534',
+          name: 'The Matrix Reloaded',
         },
       ],
       Person: [
         {
           '@type': 'Person',
-          '@location': '35,435',
+          '@location': '35,534',
           name: 'Keanu Reeves',
           actor: { '@type': 'Movie', name: 'The Matrix' },
+        },
+      ],
+      CreativeWork: [
+        {
+          '@type': ['Movie', 'CreativeWork'],
+          '@location': '35,534',
+          name: 'The Matrix Reloaded',
         },
       ],
     });
@@ -283,6 +295,64 @@ describe('JSON-LD Parser', () => {
         startOffset: 111,
         endOffset: 256,
       },
+    });
+  });
+
+  it('parses JSON-LD from jsonld6.html with multiple types', async () => {
+    const jsonld6 = await fileReader('test/resources/jsonld6.html');
+    const { jsonld, errors } = extractor.parse(jsonld6);
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
+    assert.deepEqual(jsonld, {
+      WebPage: [
+        {
+          '@type': ['WebPage', 'FAQPage'],
+          '@id': 'http://www.example.com/faq',
+          url: 'http://www.example.com/faq',
+          '@location': '35,614',
+          name: 'My FAQ page',
+          datePublished: '2023-04-27T10:56:45+01:00',
+          dateModified: '2024-01-09T10:10:03+00:00',
+          primaryImageOfPage: {
+            '@id': 'http://www.example.com/logo.jpg',
+          },
+          inLanguage: 'en-GB',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'What is a question?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'What is an answer?',
+              },
+            },
+          ],
+        },
+      ],
+      FAQPage: [
+        {
+          '@type': ['WebPage', 'FAQPage'],
+          '@id': 'http://www.example.com/faq',
+          '@location': '35,614',
+          url: 'http://www.example.com/faq',
+          name: 'My FAQ page',
+          datePublished: '2023-04-27T10:56:45+01:00',
+          dateModified: '2024-01-09T10:10:03+00:00',
+          primaryImageOfPage: {
+            '@id': 'http://www.example.com/logo.jpg',
+          },
+          inLanguage: 'en-GB',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'What is a question?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'What is an answer?',
+              },
+            },
+          ],
+        },
+      ],
     });
   });
 });
