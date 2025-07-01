@@ -129,9 +129,16 @@ export default class JsonldParser {
               return;
             }
 
-            normalizedData[graphItem['@type']] =
-              normalizedData[graphItem['@type']] || [];
-            normalizedData[graphItem['@type']].push(graphItem);
+            if (Array.isArray(graphItem['@type'])) {
+              graphItem['@type'].forEach((type) => {
+                normalizedData[type] = normalizedData[type] || [];
+                normalizedData[type].push(graphItem);
+              });
+            } else {
+              normalizedData[graphItem['@type']] =
+                normalizedData[graphItem['@type']] || [];
+              normalizedData[graphItem['@type']].push(graphItem);
+            }
           });
         } else {
           if (!item['@type']) {
@@ -139,8 +146,15 @@ export default class JsonldParser {
             return;
           }
 
-          normalizedData[item['@type']] = normalizedData[item['@type']] || [];
-          normalizedData[item['@type']].push(item);
+          if (Array.isArray(item['@type'])) {
+            item['@type'].forEach((type) => {
+              normalizedData[type] = normalizedData[type] || [];
+              normalizedData[type].push(item);
+            });
+          } else {
+            normalizedData[item['@type']] = normalizedData[item['@type']] || [];
+            normalizedData[item['@type']].push(item);
+          }
         }
       });
     });
