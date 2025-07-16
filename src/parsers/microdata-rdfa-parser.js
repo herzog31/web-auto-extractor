@@ -214,8 +214,47 @@ export default class MicroRdfaParser {
     }
   }
 
+  #postProcess() {
+    this.topLevelScope = this.#processMultiValueProps(this.topLevelScope);
+  }
+
+  /**
+   * Process multi-value properties recursively and split them into individual properties
+   */
+  #processMultiValueProps(obj) {
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.#processMultiValueProps(item));
+    } else if (obj && typeof obj === 'object') {
+      for (const [key, value] of Object.entries(obj)) {
+        if (key.startsWith('@')) {
+          continue;
+        }
+
+        obj[key] = this.#processMultiValueProps(value);
+
+        // Split the key by spaces to handle multi-value properties
+        const propNames = key.trim().split(/\s+/);
+
+        if (propNames.length > 1) {
+          // Multi-value property: assign the same value to each individual property
+          for (const propName of propNames) {
+            if (propName) {
+              obj[propName] = obj[key];
+            }
+          }
+          delete obj[key];
+        }
+      }
+
+      return obj;
+    } else {
+      return obj;
+    }
+  }
+
   parse() {
     this.parser.end(this.html);
+    this.#postProcess();
     return { data: this.topLevelScope, errors: this.errors };
   }
 }
