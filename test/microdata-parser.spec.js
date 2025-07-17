@@ -294,4 +294,36 @@ describe('Microdata Parser', () => {
       ],
     });
   });
+
+  it('parses itemprop with multiple values', async () => {
+    const microdata5 = await fileReader('test/resources/microdata5.html');
+    const { microdata, errors } = extractor.parse(microdata5);
+
+    assert.deepEqual(microdata, {
+      ImageObject: [
+        {
+          '@location': '0,639',
+          '@context': 'https://schema.org/',
+          '@type': 'ImageObject',
+          url: 'https://example.com/photos/1x1/black-labrador-puppy.jpg',
+          contentUrl: 'https://example.com/photos/1x1/black-labrador-puppy.jpg',
+          license: 'https://example.com/license',
+          acquireLicensePage: 'https://example.com/how-to-use-my-images',
+          creator: {
+            '@context': 'https://schema.org/',
+            '@type': 'Person',
+            name: 'Brixton Brownstone',
+          },
+          author: {
+            '@context': 'https://schema.org/',
+            '@type': 'Person',
+            name: 'Brixton Brownstone',
+          },
+          copyrightNotice: 'Clara Kent',
+          creditText: 'Labrador PhotoLab',
+        },
+      ],
+    });
+    assert.isTrue(errors.length === 0, JSON.stringify(errors));
+  });
 });
