@@ -8,6 +8,7 @@ export default class HeadingParser {
       ...options,
     };
 
+    this.errors = [];
     this.headings = [];
     this.currentHeading = null;
     this.headingText = '';
@@ -22,16 +23,18 @@ export default class HeadingParser {
   }
 
   #onOpenTag({ tagName, attrs, sourceCodeLocation }) {
+    const tag = tagName.toLowerCase();
     // Check if this is a heading tag (h1-h6)
-    if (/^h[1-6]$/i.test(tagName)) {
-      this.#startHeading(tagName, attrs, sourceCodeLocation);
+    if (/^h[1-6]$/i.test(tag)) {
+      this.#startHeading(tag, attrs, sourceCodeLocation);
     }
   }
 
   #onCloseTag({ tagName, sourceCodeLocation }) {
+    const tag = tagName.toLowerCase();
     // Check if this is a heading tag (h1-h6)
-    if (/^h[1-6]$/i.test(tagName)) {
-      this.#endHeading(sourceCodeLocation);
+    if (/^h[1-6]$/i.test(tag)) {
+      this.#endHeading(tag, sourceCodeLocation);
     }
   }
 
@@ -56,29 +59,36 @@ export default class HeadingParser {
     this.headingStart = sourceCodeLocation.startOffset;
   }
 
-  #endHeading(sourceCodeLocation) {
+  #endHeading(tagName, sourceCodeLocation) {
     if (!this.currentHeading) return;
+    if (tagName === this.currentHeading.tag) {
+      this.currentHeading.text = this.headingText.trim();
+      this.headingEnd = sourceCodeLocation.endOffset;
 
-    this.currentHeading.text = this.headingText.trim();
-    this.headingEnd = sourceCodeLocation.endOffset;
+      if (this.options.embedSource) {
+        this.currentHeading['@source'] = this.html.slice(
+          this.headingStart,
+          this.headingEnd,
+        );
+      }
 
-    if (this.options.embedSource) {
-      this.currentHeading['@source'] = this.html.slice(
-        this.headingStart,
-        this.headingEnd,
-      );
-    }
+      if (this.options.addLocation) {
+        this.currentHeading['@location'] =
+          `${this.headingStart},${this.headingEnd}`;
+      }
 
-    if (this.options.addLocation) {
-      this.currentHeading['@location'] =
-        `${this.headingStart},${this.headingEnd}`;
-    }
-
-    if (
-      !this.options.skipEmptyHeadings ||
-      this.currentHeading.text.trim() !== ''
-    ) {
-      this.headings.push(this.currentHeading);
+      if (
+        !this.options.skipEmptyHeadings ||
+        this.currentHeading.text.trim() !== ''
+      ) {
+        this.headings.push(this.currentHeading);
+      }
+    } else {
+      this.errors.push({
+        message: 'Heading tags are malformed',
+        format: 'headings',
+        sourceCodeLocation,
+      });
     }
 
     this.currentHeading = null;
@@ -92,6 +102,7 @@ export default class HeadingParser {
 
     return {
       headings: this.headings,
+      errors: this.errors,
     };
   }
 }
