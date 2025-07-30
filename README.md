@@ -16,6 +16,7 @@ Parse semantically structured information from any HTML webpage.
   - RDFa-lite
   - JSON-LD
 - Meta tags
+- Heading tags
 
 Popularly, many websites mark up their webpages with Schema.org vocabularies for better SEO. This library helps you parse that information to JSON.
 
