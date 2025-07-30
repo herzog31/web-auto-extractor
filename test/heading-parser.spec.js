@@ -15,7 +15,10 @@ describe('HeadingParser', () => {
   describe('Basic heading parsing', () => {
     it('should parse simple h1 heading', () => {
       const html = '<h1>Main Title</h1>';
-      parser = new HeadingParser(html, { embedSource: true, addLocation: true });
+      parser = new HeadingParser(html, {
+        embedSource: true,
+        addLocation: true,
+      });
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
@@ -26,7 +29,7 @@ describe('HeadingParser', () => {
         '@location': '0,19',
         '@source': '<h1>Main Title</h1>',
         order: 0,
-        attributes: []
+        attributes: [],
       });
     });
 
@@ -39,18 +42,19 @@ describe('HeadingParser', () => {
       assert.equal(result.headings[0].tag, 'h1');
       assert.equal(result.headings[0].text, 'Title');
       assert.equal(result.headings[0].order, 0);
-      
+
       assert.equal(result.headings[1].tag, 'h2');
       assert.equal(result.headings[1].text, 'Section');
       assert.equal(result.headings[1].order, 1);
-      
+
       assert.equal(result.headings[2].tag, 'h3');
       assert.equal(result.headings[2].text, 'Subsection');
       assert.equal(result.headings[2].order, 2);
     });
 
     it('should parse all heading levels (h1-h6)', () => {
-      const html = '<h1>H1</h1><h2>H2</h2><h3>H3</h3><h4>H4</h4><h5>H5</h5><h6>H6</h6>';
+      const html =
+        '<h1>H1</h1><h2>H2</h2><h3>H3</h3><h4>H4</h4><h5>H5</h5><h6>H6</h6>';
       parser = new HeadingParser(html);
       const result = parser.parse();
 
@@ -71,7 +75,7 @@ describe('HeadingParser', () => {
 
       assert.equal(result.headings.length, 4);
       assert.deepEqual(result.headings[0].attributes, [
-        { name: 'id', value: 'main-title' }
+        { name: 'id', value: 'main-title' },
       ]);
     });
 
@@ -84,7 +88,7 @@ describe('HeadingParser', () => {
       assert.deepEqual(result.headings[1].attributes, [
         { name: 'id', value: 'section' },
         { name: 'class', value: 'highlight' },
-        { name: 'data-test', value: 'value' }
+        { name: 'data-test', value: 'value' },
       ]);
     });
 
@@ -106,7 +110,10 @@ describe('HeadingParser', () => {
 
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[0].text, 'Heading with bold text');
-      assert.equal(result.headings[0]['@source'], '<h2>Heading with <strong>bold</strong> text</h2>');
+      assert.equal(
+        result.headings[0]['@source'],
+        '<h2>Heading with <strong>bold</strong> text</h2>',
+      );
     });
 
     it('should detect heading with link', async () => {
@@ -116,7 +123,10 @@ describe('HeadingParser', () => {
 
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[1].text, 'Heading with link inside');
-      assert.equal(result.headings[1]['@source'], '<h3>Heading with <a href="#">link</a> inside</h3>');
+      assert.equal(
+        result.headings[1]['@source'],
+        '<h3>Heading with <a href="#">link</a> inside</h3>',
+      );
     });
 
     it('should detect heading with multiple nested tags', async () => {
@@ -126,7 +136,10 @@ describe('HeadingParser', () => {
 
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[2].text, 'Title with italic and bold text');
-      assert.equal(result.headings[2]['@source'], '<h1>Title with <em>italic</em> and <strong>bold</strong> text</h1>');
+      assert.equal(
+        result.headings[2]['@source'],
+        '<h1>Title with <em>italic</em> and <strong>bold</strong> text</h1>',
+      );
     });
 
     it('should not detect tags in simple heading', async () => {
@@ -180,7 +193,10 @@ describe('HeadingParser', () => {
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[3].text, 'Title with spaces');
       assert.equal(result.headings[3].tag, 'h1');
-      assert.equal(result.headings[3]['@source'], '<h1>  Title with spaces  </h1>');
+      assert.equal(
+        result.headings[3]['@source'],
+        '<h1>  Title with spaces  </h1>',
+      );
     });
   });
 
@@ -194,15 +210,15 @@ describe('HeadingParser', () => {
       assert.equal(result.headings[0].tag, 'h1');
       assert.equal(result.headings[0].text, 'Main Title');
       assert.equal(result.headings[0].order, 0);
-      
+
       assert.equal(result.headings[1].tag, 'h2');
       assert.equal(result.headings[1].text, 'Section 1');
       assert.equal(result.headings[1].order, 1);
-      
+
       assert.equal(result.headings[2].tag, 'h3');
       assert.equal(result.headings[2].text, 'Subsection');
       assert.equal(result.headings[2].order, 2);
-      
+
       assert.equal(result.headings[3].tag, 'h2');
       assert.equal(result.headings[3].text, 'Section 2');
       assert.equal(result.headings[3].order, 3);
@@ -241,7 +257,10 @@ describe('HeadingParser', () => {
 
     it('should include HTML source when embedSource is true', () => {
       const html = '<h1>Title</h1>';
-      parser = new HeadingParser(html, { embedSource: true, addLocation: true });
+      parser = new HeadingParser(html, {
+        embedSource: true,
+        addLocation: true,
+      });
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
@@ -259,7 +278,10 @@ describe('HeadingParser', () => {
 
     it('should work with both options enabled', () => {
       const html = '<h1>Title</h1>';
-      parser = new HeadingParser(html, { embedSource: true, addLocation: true });
+      parser = new HeadingParser(html, {
+        embedSource: true,
+        addLocation: true,
+      });
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
@@ -279,7 +301,10 @@ describe('HeadingParser', () => {
 
     it('should include HTML source but not location when embedSource is true and addLocation is false', () => {
       const html = '<h1>Title</h1>';
-      parser = new HeadingParser(html, { embedSource: true, addLocation: false });
+      parser = new HeadingParser(html, {
+        embedSource: true,
+        addLocation: false,
+      });
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
@@ -348,7 +373,9 @@ describe('HeadingParser', () => {
 
   describe('Text extraction', () => {
     it('should extract text with multiple spaces', async () => {
-      const html = await fileReader('test/resources/headings-text-extraction.html');
+      const html = await fileReader(
+        'test/resources/headings-text-extraction.html',
+      );
       parser = new HeadingParser(html);
       const result = parser.parse();
 
@@ -357,7 +384,9 @@ describe('HeadingParser', () => {
     });
 
     it('should extract text with newlines', async () => {
-      const html = await fileReader('test/resources/headings-text-extraction.html');
+      const html = await fileReader(
+        'test/resources/headings-text-extraction.html',
+      );
       parser = new HeadingParser(html);
       const result = parser.parse();
 
@@ -366,7 +395,9 @@ describe('HeadingParser', () => {
     });
 
     it('should extract text with tabs', async () => {
-      const html = await fileReader('test/resources/headings-text-extraction.html');
+      const html = await fileReader(
+        'test/resources/headings-text-extraction.html',
+      );
       parser = new HeadingParser(html);
       const result = parser.parse();
 
@@ -374,4 +405,4 @@ describe('HeadingParser', () => {
       assert.equal(result.headings[2].text, 'Title\twith\ttabs');
     });
   });
-}); 
+});

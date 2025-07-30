@@ -13,9 +13,9 @@ export default class HeadingParser {
     this.headingText = '';
     this.headingStart = 0;
     this.headingEnd = 0;
-    
+
     this.parser = new HTMLSAXParser();
-    
+
     this.parser.on('startTag', this.#onOpenTag.bind(this));
     this.parser.on('endTag', this.#onCloseTag.bind(this));
     this.parser.on('text', this.#onText.bind(this));
@@ -49,7 +49,7 @@ export default class HeadingParser {
       level: level,
       text: '',
       order: this.headings.length,
-      attributes: attrs
+      attributes: attrs,
     };
 
     this.headingText = '';
@@ -65,15 +65,19 @@ export default class HeadingParser {
     if (this.options.embedSource) {
       this.currentHeading['@source'] = this.html.slice(
         this.headingStart,
-        this.headingEnd
+        this.headingEnd,
       );
     }
 
     if (this.options.addLocation) {
-      this.currentHeading['@location'] = `${this.headingStart},${this.headingEnd}`;
+      this.currentHeading['@location'] =
+        `${this.headingStart},${this.headingEnd}`;
     }
 
-    if (!this.options.skipEmptyHeadings || this.currentHeading.text.trim() !== '') {
+    if (
+      !this.options.skipEmptyHeadings ||
+      this.currentHeading.text.trim() !== ''
+    ) {
       this.headings.push(this.currentHeading);
     }
 
@@ -87,7 +91,7 @@ export default class HeadingParser {
     this.parser.end(this.html);
 
     return {
-      headings: this.headings
+      headings: this.headings,
     };
   }
-} 
+}
