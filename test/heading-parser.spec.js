@@ -23,12 +23,10 @@ describe('HeadingParser', () => {
         tag: 'h1',
         level: 1,
         text: 'Main Title',
-        location: 0,
-        endLocation: 19,
-        html: '<h1>Main Title</h1>',
-        containsTags: false,
+        '@location': '0,19',
+        '@source': '<h1>Main Title</h1>',
         order: 0,
-        attributes: {}
+        attributes: []
       });
     });
 
@@ -72,9 +70,9 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 4);
-      assert.deepEqual(result.headings[0].attributes, {
-        id: 'main-title'
-      });
+      assert.deepEqual(result.headings[0].attributes, [
+        { name: 'id', value: 'main-title' }
+      ]);
     });
 
     it('should parse heading with multiple attributes', async () => {
@@ -83,11 +81,11 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 4);
-      assert.deepEqual(result.headings[1].attributes, {
-        id: 'section',
-        class: 'highlight',
-        'data-test': 'value'
-      });
+      assert.deepEqual(result.headings[1].attributes, [
+        { name: 'id', value: 'section' },
+        { name: 'class', value: 'highlight' },
+        { name: 'data-test', value: 'value' }
+      ]);
     });
 
     it('should handle heading without attributes', async () => {
@@ -96,7 +94,7 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 4);
-      assert.deepEqual(result.headings[2].attributes, {});
+      assert.deepEqual(result.headings[2].attributes, []);
     });
   });
 
@@ -107,9 +105,8 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 4);
-      assert.equal(result.headings[0].containsTags, true);
       assert.equal(result.headings[0].text, 'Heading with bold text');
-      assert.equal(result.headings[0].html, '<h2>Heading with <strong>bold</strong> text</h2>');
+      assert.equal(result.headings[0]['@source'], '<h2>Heading with <strong>bold</strong> text</h2>');
     });
 
     it('should detect heading with link', async () => {
@@ -118,9 +115,8 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 4);
-      assert.equal(result.headings[1].containsTags, true);
       assert.equal(result.headings[1].text, 'Heading with link inside');
-      assert.equal(result.headings[1].html, '<h3>Heading with <a href="#">link</a> inside</h3>');
+      assert.equal(result.headings[1]['@source'], '<h3>Heading with <a href="#">link</a> inside</h3>');
     });
 
     it('should detect heading with multiple nested tags', async () => {
@@ -129,9 +125,8 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 4);
-      assert.equal(result.headings[2].containsTags, true);
       assert.equal(result.headings[2].text, 'Title with italic and bold text');
-      assert.equal(result.headings[2].html, '<h1>Title with <em>italic</em> and <strong>bold</strong> text</h1>');
+      assert.equal(result.headings[2]['@source'], '<h1>Title with <em>italic</em> and <strong>bold</strong> text</h1>');
     });
 
     it('should not detect tags in simple heading', async () => {
@@ -140,7 +135,6 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 4);
-      assert.equal(result.headings[3].containsTags, false);
     });
   });
 
@@ -153,7 +147,7 @@ describe('HeadingParser', () => {
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[0].text, '');
       assert.equal(result.headings[0].tag, 'h1');
-      assert.equal(result.headings[0].html, '<h1></h1>');
+      assert.equal(result.headings[0]['@source'], '<h1></h1>');
     });
 
     it('should include heading with only whitespace', async () => {
@@ -164,7 +158,7 @@ describe('HeadingParser', () => {
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[1].text, '');
       assert.equal(result.headings[1].tag, 'h2');
-      assert.equal(result.headings[1].html, '<h2>   </h2>');
+      assert.equal(result.headings[1]['@source'], '<h2>   </h2>');
     });
 
     it('should include heading with only newlines', async () => {
@@ -175,7 +169,7 @@ describe('HeadingParser', () => {
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[2].text, '');
       assert.equal(result.headings[2].tag, 'h3');
-      assert.equal(result.headings[2].html, '<h3>\n\n</h3>');
+      assert.equal(result.headings[2]['@source'], '<h3>\n\n</h3>');
     });
 
     it('should parse heading with leading/trailing whitespace', async () => {
@@ -186,7 +180,7 @@ describe('HeadingParser', () => {
       assert.equal(result.headings.length, 4);
       assert.equal(result.headings[3].text, 'Title with spaces');
       assert.equal(result.headings[3].tag, 'h1');
-      assert.equal(result.headings[3].html, '<h1>  Title with spaces  </h1>');
+      assert.equal(result.headings[3]['@source'], '<h1>  Title with spaces  </h1>');
     });
   });
 
@@ -233,8 +227,7 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
-      assert.isNumber(result.headings[0].location);
-      assert.isNumber(result.headings[0].endLocation);
+      assert.equal(result.headings[0]['@location'], '0,14');
     });
 
     it('should not include location when addLocation is false', () => {
@@ -243,8 +236,7 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
-      assert.isUndefined(result.headings[0].location);
-      assert.isUndefined(result.headings[0].endLocation);
+      assert.isUndefined(result.headings[0]['@location']);
     });
 
     it('should include HTML source when embedSource is true', () => {
@@ -253,7 +245,7 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
-      assert.equal(result.headings[0].html, '<h1>Title</h1>');
+      assert.equal(result.headings[0]['@source'], '<h1>Title</h1>');
     });
 
     it('should not include HTML source when embedSource is false', () => {
@@ -262,7 +254,7 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
-      assert.isUndefined(result.headings[0].html);
+      assert.isUndefined(result.headings[0]['@source']);
     });
 
     it('should work with both options enabled', () => {
@@ -271,9 +263,8 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
-      assert.isNumber(result.headings[0].location);
-      assert.isNumber(result.headings[0].endLocation);
-      assert.equal(result.headings[0].html, '<h1>Title</h1>');
+      assert.equal(result.headings[0]['@location'], '0,14');
+      assert.equal(result.headings[0]['@source'], '<h1>Title</h1>');
     });
 
     it('should work with default options (both false)', () => {
@@ -282,9 +273,8 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
-      assert.isUndefined(result.headings[0].location);
-      assert.isUndefined(result.headings[0].endLocation);
-      assert.isUndefined(result.headings[0].html);
+      assert.isUndefined(result.headings[0]['@location']);
+      assert.isUndefined(result.headings[0]['@source']);
     });
 
     it('should include HTML source but not location when embedSource is true and addLocation is false', () => {
@@ -293,9 +283,8 @@ describe('HeadingParser', () => {
       const result = parser.parse();
 
       assert.equal(result.headings.length, 1);
-      assert.isUndefined(result.headings[0].location);
-      assert.isUndefined(result.headings[0].endLocation);
-      assert.equal(result.headings[0].html, '<h1>Title</h1>');
+      assert.isUndefined(result.headings[0]['@location']);
+      assert.equal(result.headings[0]['@source'], '<h1>Title</h1>');
     });
 
     it('should skip empty headings when skipEmptyHeadings is true', async () => {

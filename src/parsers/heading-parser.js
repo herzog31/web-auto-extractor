@@ -11,8 +11,8 @@ export default class HeadingParser {
     this.headings = [];
     this.currentHeading = null;
     this.headingText = '';
-    this.headingContainsTags = false;
-    this.headingTagStack = [];
+    this.headingStart = 0;
+    this.headingEnd = 0;
     
     this.parser = new HTMLSAXParser();
     
@@ -25,10 +25,6 @@ export default class HeadingParser {
     // Check if this is a heading tag (h1-h6)
     if (/^h[1-6]$/i.test(tagName)) {
       this.#startHeading(tagName, attrs, sourceCodeLocation);
-    } else if (this.currentHeading) {
-      // If we're inside a heading, track that it contains other tags
-      this.headingContainsTags = true;
-      this.headingTagStack.push(tagName);
     }
   }
 
@@ -36,12 +32,6 @@ export default class HeadingParser {
     // Check if this is a heading tag (h1-h6)
     if (/^h[1-6]$/i.test(tagName)) {
       this.#endHeading(sourceCodeLocation);
-    } else if (this.currentHeading && this.headingTagStack.length > 0) {
-      // Remove the tag from stack if it matches
-      const lastTag = this.headingTagStack[this.headingTagStack.length - 1];
-      if (lastTag === tagName) {
-        this.headingTagStack.pop();
-      }
     }
   }
 
@@ -53,53 +43,34 @@ export default class HeadingParser {
 
   #startHeading(tagName, attrs, sourceCodeLocation) {
     const level = parseInt(tagName.charAt(1));
-    const attribs = attrs.reduce((acc, current) => {
-      acc[current.name] = current.value;
-      return acc;
-    }, {});
 
     this.currentHeading = {
       tag: tagName.toLowerCase(),
       level: level,
       text: '',
-      containsTags: false,
       order: this.headings.length,
-      attributes: attribs
+      attributes: attrs
     };
 
-    // Add location if requested or if embedSource is enabled
-    if (this.options.addLocation || this.options.embedSource) {
-      this.currentHeading.location = sourceCodeLocation.startOffset;
-      this.currentHeading.endLocation = null;
-    }
-
     this.headingText = '';
-    this.headingContainsTags = false;
-    this.headingTagStack = [];
+    this.headingStart = sourceCodeLocation.startOffset;
   }
 
   #endHeading(sourceCodeLocation) {
     if (!this.currentHeading) return;
 
     this.currentHeading.text = this.headingText.trim();
-    this.currentHeading.containsTags = this.headingContainsTags;
+    this.headingEnd = sourceCodeLocation.endOffset;
 
-    // Add location if requested or if embedSource is enabled
-    if (this.options.addLocation || this.options.embedSource) {
-      this.currentHeading.endLocation = sourceCodeLocation.endOffset;
-    }
-
-    // Add HTML source if requested
     if (this.options.embedSource) {
-      this.currentHeading.html = this.html.slice(
-        this.currentHeading.location,
-        sourceCodeLocation.endOffset
+      this.currentHeading['@source'] = this.html.slice(
+        this.headingStart,
+        this.headingEnd
       );
     }
 
-    if (this.options.embedSource && !this.options.addLocation) {
-      delete this.currentHeading.location;
-      delete this.currentHeading.endLocation;
+    if (this.options.addLocation) {
+      this.currentHeading['@location'] = `${this.headingStart},${this.headingEnd}`;
     }
 
     if (!this.options.skipEmptyHeadings || this.currentHeading.text.trim() !== '') {
@@ -108,8 +79,8 @@ export default class HeadingParser {
 
     this.currentHeading = null;
     this.headingText = '';
-    this.headingContainsTags = false;
-    this.headingTagStack = [];
+    this.headingStart = 0;
+    this.headingEnd = 0;
   }
 
   parse() {
