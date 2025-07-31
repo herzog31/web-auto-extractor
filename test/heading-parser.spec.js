@@ -24,6 +24,7 @@ describe('HeadingParser', () => {
         text: 'Main Title',
         '@location': '0,19',
         '@source': '<h1>Main Title</h1>',
+        isLayoutElement: false,
         order: 0,
         attributes: [],
       });
@@ -64,7 +65,6 @@ describe('HeadingParser', () => {
       const html = '<h1>Title</h2>';
       const result = extractor.parse(html);
 
-      console.log(result);
       assert.equal(result.headings.length, 0);
       assert.equal(result.errors.length, 1);
       assert.equal(result.errors[0].message, 'Heading tags are malformed');
@@ -225,6 +225,55 @@ describe('HeadingParser', () => {
       assert.equal(result.headings[1].text, 'Section');
       assert.equal(result.headings[2].text, 'Subsection');
     });
+
+    it('should handle headings in layout elements', async () => {
+      const html = await fileReader(
+        'test/resources/headings-complex-layout.html',
+      );
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 8);
+
+      // Navigation in header
+      assert.equal(result.headings[0].text, 'Navigation');
+      assert.equal(result.headings[0].tag, 'h1');
+      assert.equal(result.headings[0].isLayoutElement, true);
+
+      // Main content
+      assert.equal(result.headings[1].text, 'Main Content');
+      assert.equal(result.headings[1].tag, 'h1');
+      assert.equal(result.headings[1].isLayoutElement, false);
+
+      // Section title
+      assert.equal(result.headings[2].text, 'Section Title');
+      assert.equal(result.headings[2].tag, 'h2');
+      assert.equal(result.headings[2].isLayoutElement, false);
+
+      // Article title
+      assert.equal(result.headings[3].text, 'Article Title');
+      assert.equal(result.headings[3].tag, 'h3');
+      assert.equal(result.headings[3].isLayoutElement, false);
+
+      // Sidebar
+      assert.equal(result.headings[4].text, 'Sidebar');
+      assert.equal(result.headings[4].tag, 'h2');
+      assert.equal(result.headings[4].isLayoutElement, true);
+
+      // Sidebar navigation
+      assert.equal(result.headings[5].text, 'Sidebar Navigation');
+      assert.equal(result.headings[5].tag, 'h3');
+      assert.equal(result.headings[5].isLayoutElement, true);
+
+      // Footer
+      assert.equal(result.headings[6].text, 'Footer');
+      assert.equal(result.headings[6].tag, 'h2');
+      assert.equal(result.headings[6].isLayoutElement, true);
+
+      // Footer navigation
+      assert.equal(result.headings[7].text, 'Footer Navigation');
+      assert.equal(result.headings[7].tag, 'h3');
+      assert.equal(result.headings[7].isLayoutElement, true);
+    });
   });
 
   describe('Parser options', () => {
@@ -311,6 +360,114 @@ describe('HeadingParser', () => {
       assert.equal(result.headings.length, 1);
       assert.equal(result.headings[0].tag, 'h1');
       assert.equal(result.headings[0].text, 'Title with spaces');
+    });
+
+    it('should include headings in layout elements when ignoreLayoutElements is false', () => {
+      const html =
+        '<header><h1>Header Title</h1></header><main><h2>Main Title</h2></main><footer><h3>Footer Title</h3></footer>';
+      extractor = new WebAutoExtractor({ skipLayoutElements: false });
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 3);
+      assert.equal(result.headings[0].isLayoutElement, true);
+      assert.equal(result.headings[0].text, 'Header Title');
+      assert.equal(result.headings[1].isLayoutElement, false);
+      assert.equal(result.headings[1].text, 'Main Title');
+      assert.equal(result.headings[2].isLayoutElement, true);
+      assert.equal(result.headings[2].text, 'Footer Title');
+    });
+
+    it('should ignore headings in layout elements when ignoreLayoutElements is true', () => {
+      const html =
+        '<header><h1>Header Title</h1></header><main><h2>Main Title</h2></main><footer><h3>Footer Title</h3></footer>';
+      extractor = new WebAutoExtractor({ skipLayoutElements: true });
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 1);
+      assert.equal(result.headings[0].text, 'Main Title');
+      assert.isUndefined(result.headings[0].isLayoutElement);
+    });
+  });
+
+  describe('Layout elements', () => {
+    it('should mark headings inside layout elements', () => {
+      const html =
+        '<header><h1>Header Title</h1></header><h2>Main Title</h2><footer><h3>Footer Title</h3></footer>';
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 3);
+      assert.equal(result.headings[0].isLayoutElement, true);
+      assert.equal(result.headings[0].text, 'Header Title');
+      assert.equal(result.headings[1].isLayoutElement, false);
+      assert.equal(result.headings[1].text, 'Main Title');
+      assert.equal(result.headings[2].isLayoutElement, true);
+      assert.equal(result.headings[2].text, 'Footer Title');
+    });
+
+    it('should handle nested layout elements correctly', () => {
+      const html =
+        '<header><nav><h1>Nav Title</h1></nav><h2>Header Title</h2></header><main><h3>Main Title</h3></main>';
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 3);
+      assert.equal(result.headings[0].isLayoutElement, true);
+      assert.equal(result.headings[1].isLayoutElement, true);
+      assert.equal(result.headings[2].isLayoutElement, false);
+    });
+
+    it('should handle all layout element types', () => {
+      const html =
+        '<header><h1>Header</h1></header><nav><h2>Nav</h2></nav><aside><h3>Aside</h3></aside><footer><h4>Footer</h4></footer>';
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 4);
+      assert.equal(result.headings[0].isLayoutElement, true);
+      assert.equal(result.headings[1].isLayoutElement, true);
+      assert.equal(result.headings[2].isLayoutElement, true);
+      assert.equal(result.headings[3].isLayoutElement, true);
+    });
+
+    it('should filter out layout elements when skipLayoutElements is true', async () => {
+      const html = await fileReader(
+        'test/resources/headings-complex-layout.html',
+      );
+      extractor = new WebAutoExtractor({ skipLayoutElements: true });
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 3);
+
+      // Only non-layout headings should remain
+      assert.equal(result.headings[0].text, 'Main Content');
+      assert.equal(result.headings[0].isLayoutElement, undefined);
+
+      assert.equal(result.headings[1].text, 'Section Title');
+      assert.equal(result.headings[1].isLayoutElement, undefined);
+
+      assert.equal(result.headings[2].text, 'Article Title');
+      assert.equal(result.headings[2].isLayoutElement, undefined);
+    });
+
+    it('should handle deeply nested layout elements', () => {
+      const html =
+        '<header><nav><div><h1>Deep Navigation</h1></div></nav></header><main><h2>Main Content</h2></main>';
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 2);
+      assert.equal(result.headings[0].isLayoutElement, true); // Deep in header/nav
+      assert.equal(result.headings[1].isLayoutElement, false); // In main
+    });
+
+    it('should handle mixed content with layout and non-layout headings', () => {
+      const html =
+        '<h1>Before Header</h1><header><h2>In Header</h2></header><h3>After Header</h3><footer><h4>In Footer</h4></footer><h5>After Footer</h5>';
+      const result = extractor.parse(html);
+
+      assert.equal(result.headings.length, 5);
+      assert.equal(result.headings[0].isLayoutElement, false); // Before header
+      assert.equal(result.headings[1].isLayoutElement, true); // In header
+      assert.equal(result.headings[2].isLayoutElement, false); // After header
+      assert.equal(result.headings[3].isLayoutElement, true); // In footer
+      assert.equal(result.headings[4].isLayoutElement, false); // After footer
     });
   });
 

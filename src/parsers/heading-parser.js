@@ -5,6 +5,7 @@ export default class HeadingParser {
     this.html = html;
     this.options = {
       skipEmptyHeadings: false,
+      skipLayoutElements: false,
       ...options,
     };
 
@@ -14,6 +15,8 @@ export default class HeadingParser {
     this.headingText = '';
     this.headingStart = 0;
     this.headingEnd = 0;
+    this.layoutStack = [];
+    this.isInLayoutElement = false;
 
     this.parser = new HTMLSAXParser();
 
@@ -24,6 +27,13 @@ export default class HeadingParser {
 
   #onOpenTag({ tagName, attrs, sourceCodeLocation }) {
     const tag = tagName.toLowerCase();
+
+    // Track layout elements
+    if (['header', 'footer', 'nav', 'aside'].includes(tag)) {
+      this.layoutStack.push(tag);
+      this.isInLayoutElement = true;
+    }
+
     // Check if this is a heading tag (h1-h6)
     if (/^h[1-6]$/i.test(tag)) {
       this.#startHeading(tag, attrs, sourceCodeLocation);
@@ -32,6 +42,16 @@ export default class HeadingParser {
 
   #onCloseTag({ tagName, sourceCodeLocation }) {
     const tag = tagName.toLowerCase();
+
+    // Handle closing layout elements
+    if (['header', 'footer', 'nav', 'aside'].includes(tag)) {
+      const index = this.layoutStack.lastIndexOf(tag);
+      if (index !== -1) {
+        this.layoutStack.splice(index, 1);
+        this.isInLayoutElement = this.layoutStack.length > 0;
+      }
+    }
+
     // Check if this is a heading tag (h1-h6)
     if (/^h[1-6]$/i.test(tag)) {
       this.#endHeading(tag, sourceCodeLocation);
@@ -55,6 +75,11 @@ export default class HeadingParser {
       attributes: attrs,
     };
 
+    // Only include isLayoutElement field if we're not skipping layout elements
+    if (!this.options.skipLayoutElements) {
+      this.currentHeading.isLayoutElement = this.isInLayoutElement;
+    }
+
     this.headingText = '';
     this.headingStart = sourceCodeLocation.startOffset;
   }
@@ -77,7 +102,9 @@ export default class HeadingParser {
           `${this.headingStart},${this.headingEnd}`;
       }
 
-      if (
+      if (this.options.skipLayoutElements && this.isInLayoutElement) {
+        // Don't add to headings array
+      } else if (
         !this.options.skipEmptyHeadings ||
         this.currentHeading.text.trim() !== ''
       ) {
