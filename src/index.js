@@ -1,6 +1,7 @@
 import MetaTagsParser from './parsers/metatag-parser.js';
 import MicroRdfaParser from './parsers/microdata-rdfa-parser.js';
 import JsonldParser from './parsers/jsonld-parser.js';
+import HeadingParser from './parsers/heading-parser.js';
 
 class WebAutoExtractor {
   constructor(options = {}) {
@@ -29,17 +30,23 @@ class WebAutoExtractor {
       html,
       this.options,
     ).parse();
+    const { headings, errors: headingErrors } = new HeadingParser(
+      html,
+      this.options,
+    ).parse();
 
     return {
       metatags,
       microdata,
       rdfa,
       jsonld,
+      headings,
       errors: [
         ...metatagErrors,
         ...microdataErrors,
         ...rdfaErrors,
         ...jsonldErrors,
+        ...headingErrors,
       ],
     };
   }

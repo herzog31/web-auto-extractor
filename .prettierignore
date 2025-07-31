@@ -1,4 +1,6 @@
 test/resources/testPage.html
 test/resources/microdata4.html
+test/resources/headings-empty.html
+test/resources/headings-text-extraction.html
 coverage/
 CHANGELOG.md

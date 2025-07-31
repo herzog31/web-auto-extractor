@@ -16,6 +16,7 @@ Parse semantically structured information from any HTML webpage.
   - RDFa-lite
   - JSON-LD
 - Meta tags
+- Heading tags
 
 Popularly, many websites mark up their webpages with Schema.org vocabularies for better SEO. This library helps you parse that information to JSON.
 
@@ -36,6 +37,15 @@ const parsed = new WebAutoExtractor({
   // Embed the source HTML in the root elements in the parsed data using the @source property.
   // This property is either a boolean to embed sources for all data types or an array of data types to embed sources for.
   embedSource: false,
+
+  // Skip headings with empty or whitespace-only text content.
+  // When true, headings like <h1></h1> or <h2>   </h2> will be excluded from results.
+  skipEmptyHeadings: false,
+
+  // Skip headings that are inside layout elements (header, footer, nav, aside).
+  // When true, headings within these semantic layout containers will be excluded from results.
+  // The isLayoutElement field is only included when this option is false.
+  skipLayoutElements: false,
 }).parse(sampleHTML);
 
 // Output format
@@ -43,7 +53,8 @@ const parsed = new WebAutoExtractor({
     "metatags": {},
     "microdata": {},
     "rdfa": {},
-    "jsonld": {}
+    "jsonld": {},
+    "headings": {}
 } */
 ```
 
