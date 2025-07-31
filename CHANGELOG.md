@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/herzog31/web-auto-extractor/compare/v2.1.1...v2.2.0) (2025-07-31)
+
+
+### Features
+
+* add heading tag parser ([#5](https://github.com/herzog31/web-auto-extractor/issues/5)) ([fab777f](https://github.com/herzog31/web-auto-extractor/commit/fab777f01e4ddcb50931949560b1b3eb63373b7f))
+
 ## [2.1.1](https://github.com/herzog31/web-auto-extractor/compare/v2.1.0...v2.1.1) (2025-07-17)
 
 
