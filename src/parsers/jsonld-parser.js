@@ -97,17 +97,26 @@ export default class JsonldParser {
       delete source['@location'];
     }
 
-    this.errors.push({
-      message: 'JSON-LD object missing @type attribute',
-      format: 'jsonld',
-      sourceCodeLocation,
-      source: JSON.stringify(source),
-    });
+    const isEmptyJson = Object.keys(source).length === 0;
+    if (isEmptyJson) {
+      this.errors.push({
+        message: 'JSON-LD object is empty',
+        format: 'jsonld',
+        sourceCodeLocation,
+        source: JSON.stringify(source),
+      });
+    } else {
+      this.errors.push({
+        message: 'JSON-LD object missing @type attribute',
+        format: 'jsonld',
+        sourceCodeLocation,
+        source: JSON.stringify(source),
+      });
+    }
   }
 
   #normalizeJsonldData() {
     const normalizedData = {};
-
     this.jsonldData.forEach((item) => {
       if (!Array.isArray(item)) {
         item = [item];
