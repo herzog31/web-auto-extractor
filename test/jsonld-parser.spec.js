@@ -366,7 +366,7 @@ describe('JSON-LD Parser', () => {
       source: '{}',
       sourceCodeLocation: {
         startOffset: 35,
-        endOffset: 39,
+        endOffset: 41,
       },
     });
   });
