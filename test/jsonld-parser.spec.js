@@ -355,7 +355,7 @@ describe('JSON-LD Parser', () => {
       ],
     });
   });
-    it('handles empty JSON-LD', async () => {
+  it('handles empty JSON-LD', async () => {
     const emptyJsonld = await fileReader('test/resources/jsonld-empty.html');
     const { jsonld, errors } = extractor.parse(emptyJsonld);
     assert.deepEqual(jsonld, {});
@@ -363,8 +363,7 @@ describe('JSON-LD Parser', () => {
     assert.deepEqual(errors[0], {
       message: 'JSON-LD object is empty',
       format: 'jsonld',
-      source:
-        '{}',
+      source: '{}',
       sourceCodeLocation: {
         startOffset: 35,
         endOffset: 39,
