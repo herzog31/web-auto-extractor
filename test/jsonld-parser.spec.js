@@ -355,4 +355,19 @@ describe('JSON-LD Parser', () => {
       ],
     });
   });
+  it('handles empty JSON-LD', async () => {
+    const emptyJsonld = await fileReader('test/resources/jsonld-empty.html');
+    const { jsonld, errors } = extractor.parse(emptyJsonld);
+    assert.deepEqual(jsonld, {});
+    assert.equal(errors.length, 1);
+    assert.deepEqual(errors[0], {
+      message: 'JSON-LD object is empty',
+      format: 'jsonld',
+      source: '{}',
+      sourceCodeLocation: {
+        startOffset: 35,
+        endOffset: 41,
+      },
+    });
+  });
 });
