@@ -393,7 +393,19 @@ describe('JSON-LD Parser', () => {
       'test/resources/jsonld-context-propogate-last.html',
     );
     const { jsonld, errors } = extractor.parse(jsonldContextLast);
-    assert.isTrue(errors.length === 0, JSON.stringify(errors));
+    assert.isTrue(errors.length === 2, JSON.stringify(errors));
+    assert.deepEqual(errors[0], {
+      message: 'JSON-LD object missing @context attribute',
+      format: 'jsonld',
+      sourceCodeLocation: {},
+      source: '{"@type":"Movie","name":"The Matrix","director":{"@type":"Person","name":"Lana Wachowski"}}'
+    });
+    assert.deepEqual(errors[1], {
+      message: 'JSON-LD object missing @context attribute',
+      format: 'jsonld',
+      sourceCodeLocation: {},
+      source: '{"@type":"Person","name":"Keanu Reeves","actor":{"@type":"Movie","name":"The Matrix"}}'
+    });
 
     assert.isUndefined(jsonld.Movie[0]['@context']);
     assert.isUndefined(jsonld.Person[0]['@context']);

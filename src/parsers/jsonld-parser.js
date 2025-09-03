@@ -137,7 +137,6 @@ export default class JsonldParser {
   #normalizeJsonldData() {
     const normalizedData = {};
     this.jsonldData.forEach((item) => {
-      // console.log('item------', item);
       if (!Array.isArray(item)) {
         item = [item];
       }
@@ -148,7 +147,7 @@ export default class JsonldParser {
           item['@graph'].forEach((graphItem) => {
             if (context && !graphItem['@context']) {
               graphItem['@context'] = context;
-            } else if (!context && graphItem['@context']) {
+            } else if (!context) {
               if (graphItem['@context']) {
                 context = graphItem['@context'];
               } else {
