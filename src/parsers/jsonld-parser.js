@@ -115,16 +115,46 @@ export default class JsonldParser {
     }
   }
 
+  #errorMissingContext(item) {
+    const sourceCodeLocation = {};
+    const source = { ...item };
+    if (item['@location']) {
+      sourceCodeLocation.startOffset = parseInt(
+        item['@location'].split(',')[0],
+      );
+      sourceCodeLocation.endOffset = parseInt(item['@location'].split(',')[1]);
+      delete source['@location'];
+    }
+
+    this.errors.push({
+      message: 'JSON-LD object missing @context attribute',
+      format: 'jsonld',
+      sourceCodeLocation,
+      source: JSON.stringify(source),
+    });
+  }
+
   #normalizeJsonldData() {
     const normalizedData = {};
     this.jsonldData.forEach((item) => {
+      // console.log('item------', item);
       if (!Array.isArray(item)) {
         item = [item];
       }
 
       item.forEach((item) => {
         if (item['@graph']) {
+          let context = item['@context']  ?? '';
           item['@graph'].forEach((graphItem) => {
+            if (context && !graphItem['@context']) {
+              graphItem['@context'] = context;
+            } else if (!context && graphItem['@context']) {
+              if (graphItem['@context']) {
+                context = graphItem['@context'];
+              } else {
+                this.#errorMissingContext(graphItem);
+              }
+            }
             // Move location and scope down to new root items
             if (item['@location']) {
               graphItem['@location'] = item['@location'];
