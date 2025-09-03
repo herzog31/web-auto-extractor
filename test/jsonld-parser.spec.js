@@ -111,7 +111,7 @@ describe('JSON-LD Parser', () => {
           '@type': 'Person',
           '@location': '35,534',
           name: 'Keanu Reeves',
-          actor: { '@type': 'Movie', name: 'The Matrix' },  
+          actor: { '@type': 'Movie', name: 'The Matrix' },
           '@context': 'http://schema.org',
         },
       ],
@@ -376,10 +376,12 @@ describe('JSON-LD Parser', () => {
   });
 
   it('propagates context from first item to all subsequent items in @graph', async () => {
-    const jsonldContextAll = await fileReader('test/resources/jsonld-context-propogate-all.html');
+    const jsonldContextAll = await fileReader(
+      'test/resources/jsonld-context-propogate-all.html',
+    );
     const { jsonld, errors } = extractor.parse(jsonldContextAll);
     assert.isTrue(errors.length === 0, JSON.stringify(errors));
-    
+
     assert.equal(jsonld.Movie[0]['@context'], 'http://schema.org');
     assert.equal(jsonld.Movie[1]['@context'], 'http://schema.org');
     assert.equal(jsonld.Person[0]['@context'], 'http://schema.org');
@@ -387,10 +389,12 @@ describe('JSON-LD Parser', () => {
   });
 
   it('context on last item only applies to that item', async () => {
-    const jsonldContextLast = await fileReader('test/resources/jsonld-context-propogate-last.html');
+    const jsonldContextLast = await fileReader(
+      'test/resources/jsonld-context-propogate-last.html',
+    );
     const { jsonld, errors } = extractor.parse(jsonldContextLast);
     assert.isTrue(errors.length === 0, JSON.stringify(errors));
-    
+
     assert.isUndefined(jsonld.Movie[0]['@context']);
     assert.isUndefined(jsonld.Person[0]['@context']);
     assert.equal(jsonld.Movie[1]['@context'], 'http://schema.org');
