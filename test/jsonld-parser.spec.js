@@ -97,13 +97,11 @@ describe('JSON-LD Parser', () => {
           '@location': '35,534',
           name: 'The Matrix',
           director: { '@type': 'Person', name: 'Lana Wachowski' },
-          '@context': 'http://schema.org',
         },
         {
           '@type': ['Movie', 'CreativeWork'],
           '@location': '35,534',
           name: 'The Matrix Reloaded',
-          '@context': 'http://schema.org',
         },
       ],
       Person: [
@@ -112,7 +110,6 @@ describe('JSON-LD Parser', () => {
           '@location': '35,534',
           name: 'Keanu Reeves',
           actor: { '@type': 'Movie', name: 'The Matrix' },
-          '@context': 'http://schema.org',
         },
       ],
       CreativeWork: [
@@ -120,7 +117,6 @@ describe('JSON-LD Parser', () => {
           '@type': ['Movie', 'CreativeWork'],
           '@location': '35,534',
           name: 'The Matrix Reloaded',
-          '@context': 'http://schema.org',
         },
       ],
     });
