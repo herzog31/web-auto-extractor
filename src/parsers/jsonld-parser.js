@@ -143,7 +143,10 @@ export default class JsonldParser {
 
       item.forEach((item) => {
         if (item['@graph']) {
-          let context = item['@context'] ?? '';
+          let context = item['@context'];
+          if (!context) {
+            this.#errorMissingContext(item);
+          }
           item['@graph'].forEach((graphItem) => {
             if (context && !graphItem['@context']) {
               graphItem['@context'] = context;

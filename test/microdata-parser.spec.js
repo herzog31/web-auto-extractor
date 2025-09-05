@@ -268,6 +268,40 @@ describe('Microdata Parser', () => {
     assert.isTrue(errors.length === 0, JSON.stringify(errors));
   });
 
+  it('adds errors when itemtype lacks a resolvable context', async () => {
+    const html = await fileReader(
+      'test/resources/microdata-missing-context.html',
+    );
+    const { microdata, errors } = extractor.parse(html);
+    assert.deepEqual(microdata, {
+      ImageObject: [
+        {
+          '@location': '0,620',
+          '@type': 'ImageObject',
+          acquireLicensePage: 'https://example.com/how-to-use-my-images',
+          author: {
+            '@context': 'https://schema.org/',
+            '@type': 'Person',
+            name: 'Brixton Brownstone',
+          },
+          contentUrl: 'https://example.com/photos/1x1/black-labrador-puppy.jpg',
+          copyrightNotice: 'Clara Kent',
+          creator: {
+            '@context': 'https://schema.org/',
+            '@type': 'Person',
+            name: 'Brixton Brownstone',
+          },
+          creditText: 'Labrador PhotoLab',
+          license: 'https://example.com/license',
+          url: 'https://example.com/photos/1x1/black-labrador-puppy.jpg',
+        },
+      ],
+    });
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].message, 'microdata itemtype missing valid context');
+    assert.equal(errors[0].format, 'microdata');
+  });
+
   it('adds an error if src is not set', async () => {
     const { microdata, errors } =
       extractor.parse(`<div itemscope itemtype="http://schema.org/ImageObject">

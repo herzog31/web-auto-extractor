@@ -380,7 +380,14 @@ describe('JSON-LD Parser', () => {
       'test/resources/jsonld-context-propogate-all.html',
     );
     const { jsonld, errors } = extractor.parse(jsonldContextAll);
-    assert.isTrue(errors.length === 0, JSON.stringify(errors));
+    assert.isTrue(errors.length === 1, JSON.stringify(errors));
+    assert.deepEqual(errors[0], {
+      message: 'JSON-LD object missing @context attribute',
+      format: 'jsonld',
+      sourceCodeLocation: { startOffset: 35, endOffset: 538 },
+      source:
+        '{"@graph":[{"@context":"http://schema.org","@type":"Movie","name":"The Matrix","director":{"@type":"Person","name":"Lana Wachowski"}},{"@type":"Person","name":"Keanu Reeves","actor":{"@type":"Movie","name":"The Matrix"}},{"@type":["Movie","CreativeWork"],"name":"The Matrix Reloaded"}]}',
+    });
 
     assert.equal(jsonld.Movie[0]['@context'], 'http://schema.org');
     assert.equal(jsonld.Movie[1]['@context'], 'http://schema.org');
@@ -393,15 +400,22 @@ describe('JSON-LD Parser', () => {
       'test/resources/jsonld-context-propogate-last.html',
     );
     const { jsonld, errors } = extractor.parse(jsonldContextLast);
-    assert.isTrue(errors.length === 2, JSON.stringify(errors));
+    assert.isTrue(errors.length === 3, JSON.stringify(errors));
     assert.deepEqual(errors[0], {
+      message: 'JSON-LD object missing @context attribute',
+      format: 'jsonld',
+      sourceCodeLocation: { startOffset: 35, endOffset: 538 },
+      source:
+        '{"@graph":[{"@type":"Movie","name":"The Matrix","director":{"@type":"Person","name":"Lana Wachowski"}},{"@type":"Person","name":"Keanu Reeves","actor":{"@type":"Movie","name":"The Matrix"}},{"@context":"http://schema.org","@type":["Movie","CreativeWork"],"name":"The Matrix Reloaded"}]}',
+    });
+    assert.deepEqual(errors[1], {
       message: 'JSON-LD object missing @context attribute',
       format: 'jsonld',
       sourceCodeLocation: {},
       source:
         '{"@type":"Movie","name":"The Matrix","director":{"@type":"Person","name":"Lana Wachowski"}}',
     });
-    assert.deepEqual(errors[1], {
+    assert.deepEqual(errors[2], {
       message: 'JSON-LD object missing @context attribute',
       format: 'jsonld',
       sourceCodeLocation: {},
@@ -413,5 +427,20 @@ describe('JSON-LD Parser', () => {
     assert.isUndefined(jsonld.Person[0]['@context']);
     assert.equal(jsonld.Movie[1]['@context'], 'http://schema.org');
     assert.equal(jsonld.CreativeWork[0]['@context'], 'http://schema.org');
+  });
+
+  it('handles missing @context in root', async () => {
+    const jsonldContextMissingRoot = await fileReader(
+      'test/resources/jsonld-context-missing-root.html',
+    );
+    const { errors } = extractor.parse(jsonldContextMissingRoot);
+    assert.equal(errors.length, 1);
+    assert.deepEqual(errors[0], {
+      message: 'JSON-LD object missing @context attribute',
+      format: 'jsonld',
+      sourceCodeLocation: { startOffset: 35, endOffset: 620 },
+      source:
+        '{"@graph":[{"@context":"http://schema.org","@type":"Movie","name":"The Matrix","director":{"@type":"Person","name":"Lana Wachowski"}},{"@context":"http://schema.org","@type":"Person","name":"Keanu Reeves","actor":{"@type":"Movie","name":"The Matrix"}},{"@context":"http://schema.org","@type":["Movie","CreativeWork"],"name":"The Matrix Reloaded"}]}',
+    });
   });
 });
