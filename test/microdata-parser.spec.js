@@ -297,7 +297,7 @@ describe('Microdata Parser', () => {
         },
       ],
     });
-    assert.equal(errors.length, 1);
+    assert.isTrue(errors.length === 1, JSON.stringify(errors));
     assert.equal(errors[0].message, 'microdata itemtype missing valid context');
     assert.equal(errors[0].format, 'microdata');
   });
