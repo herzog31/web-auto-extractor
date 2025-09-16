@@ -22,6 +22,7 @@ export default class MicroRdfaParser {
     this.tags = [];
     this.topLevelScope = {};
     this.textForProp = null;
+    this.currentVocab = null;
     this.parser = new HTMLSAXParser();
 
     const { TYPE, PROP, ID_PROPS } = this.#getAttrNames(specName);
@@ -108,8 +109,38 @@ export default class MicroRdfaParser {
     if (currentScope) {
       if (attribs[this.TYPE]) {
         const { context, type } = this.#getType(attribs[this.TYPE]);
-        const vocab = attribs.vocab;
-        currentScope['@context'] = context || vocab;
+        let finalContext;
+        if (this.specName === 'rdfa') {
+          const vocab = attribs.vocab;
+          if (vocab) {
+            this.currentVocab = vocab;
+          }
+          finalContext = context || vocab || this.currentVocab;
+        } else {
+          finalContext = context;
+        }
+
+        if (!finalContext) {
+          this.errors.push({
+            message: `${this.specName} itemtype missing valid context`,
+            format: this.specName,
+            sourceCodeLocation,
+            source: this.html.slice(
+              sourceCodeLocation.startOffset,
+              sourceCodeLocation.endOffset,
+            ),
+          });
+        }
+
+        if (this.specName === 'rdfa') {
+          if (context || attribs.vocab) {
+            currentScope['@context'] = finalContext;
+          }
+        } else {
+          if (finalContext) {
+            currentScope['@context'] = finalContext;
+          }
+        }
         currentScope['@type'] = type;
 
         if (typesWithId.includes(type)) {

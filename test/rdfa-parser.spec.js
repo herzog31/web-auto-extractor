@@ -162,4 +162,84 @@ describe('RDFa Parser', () => {
       ],
     });
   });
+
+  it('adds errors when typeof lacks a resolvable context', async () => {
+    const html = await fileReader('test/resources/rdfa-missing-context.html');
+    const { rdfa, errors } = extractor.parse(html);
+
+    assert.deepEqual(rdfa, {
+      BreadcrumbList: [
+        {
+          '@location': '72,864',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              item: {
+                '@id': 'https://example.com/books',
+                '@type': 'WebPage',
+                name: 'Books',
+              },
+              position: '1',
+            },
+            {
+              '@type': 'ListItem',
+              item: {
+                '@id': 'https://example.com/books/sciencefiction',
+                '@type': 'WebPage',
+                name: 'Science Fiction',
+              },
+              position: '2',
+            },
+            {
+              '@type': 'ListItem',
+              name: 'Award Winners',
+              position: '3',
+            },
+          ],
+        },
+      ],
+    });
+
+    assert.deepEqual(errors, [
+      {
+        message: 'rdfa itemtype missing valid context',
+        format: 'rdfa',
+        sourceCodeLocation: { startOffset: 72, endOffset: 100 },
+        source: '<ol typeof="BreadcrumbList">',
+      },
+      {
+        message: 'rdfa itemtype missing valid context',
+        format: 'rdfa',
+        sourceCodeLocation: { startOffset: 107, endOffset: 156 },
+        source: '<li property="itemListElement" typeof="ListItem">',
+      },
+      {
+        message: 'rdfa itemtype missing valid context',
+        format: 'rdfa',
+        sourceCodeLocation: { startOffset: 165, endOffset: 234 },
+        source:
+          '<a property="item" typeof="WebPage" href="https://example.com/books">',
+      },
+      {
+        message: 'rdfa itemtype missing valid context',
+        format: 'rdfa',
+        sourceCodeLocation: { startOffset: 368, endOffset: 417 },
+        source: '<li property="itemListElement" typeof="ListItem">',
+      },
+      {
+        message: 'rdfa itemtype missing valid context',
+        format: 'rdfa',
+        sourceCodeLocation: { startOffset: 426, endOffset: 549 },
+        source:
+          '<a\n          property="item"\n          typeof="WebPage"\n          href="https://example.com/books/sciencefiction"\n        >',
+      },
+      {
+        message: 'rdfa itemtype missing valid context',
+        format: 'rdfa',
+        sourceCodeLocation: { startOffset: 693, endOffset: 742 },
+        source: '<li property="itemListElement" typeof="ListItem">',
+      },
+    ]);
+  });
 });

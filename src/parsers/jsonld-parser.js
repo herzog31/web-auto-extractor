@@ -115,6 +115,25 @@ export default class JsonldParser {
     }
   }
 
+  #errorMissingContext(item) {
+    const sourceCodeLocation = {};
+    const source = { ...item };
+    if (item['@location']) {
+      sourceCodeLocation.startOffset = parseInt(
+        item['@location'].split(',')[0],
+      );
+      sourceCodeLocation.endOffset = parseInt(item['@location'].split(',')[1]);
+      delete source['@location'];
+    }
+
+    this.errors.push({
+      message: 'JSON-LD object missing @context attribute',
+      format: 'jsonld',
+      sourceCodeLocation,
+      source: JSON.stringify(source),
+    });
+  }
+
   #normalizeJsonldData() {
     const normalizedData = {};
     this.jsonldData.forEach((item) => {
@@ -124,6 +143,14 @@ export default class JsonldParser {
 
       item.forEach((item) => {
         if (item['@graph']) {
+          let context = item['@context'];
+          let checkContext = true;
+
+          if (!context) {
+            this.#errorMissingContext(item);
+          } else {
+            checkContext = false;
+          }
           item['@graph'].forEach((graphItem) => {
             // Move location and scope down to new root items
             if (item['@location']) {
@@ -131,6 +158,17 @@ export default class JsonldParser {
             }
             if (item['@source']) {
               graphItem['@source'] = item['@source'];
+            }
+            if (checkContext) {
+              if (context && !graphItem['@context']) {
+                graphItem['@context'] = context;
+              } else if (!context) {
+                if (graphItem['@context']) {
+                  context = graphItem['@context'];
+                } else {
+                  this.#errorMissingContext(graphItem);
+                }
+              }
             }
 
             if (!graphItem['@type']) {

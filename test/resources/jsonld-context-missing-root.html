@@ -1,0 +1,29 @@
+<script type="application/ld+json">
+  {
+    "@graph": [
+      {
+        "@context": "http://schema.org",
+        "@type": "Movie",
+        "name": "The Matrix",
+        "director": {
+          "@type": "Person",
+          "name": "Lana Wachowski"
+        }
+      },
+      {
+        "@context": "http://schema.org",
+        "@type": "Person",
+        "name": "Keanu Reeves",
+        "actor": {
+          "@type": "Movie",
+          "name": "The Matrix"
+        }
+      },
+      {
+        "@context": "http://schema.org",
+        "@type": ["Movie", "CreativeWork"],
+        "name": "The Matrix Reloaded"
+      }
+    ]
+  }
+</script>
