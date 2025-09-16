@@ -145,12 +145,16 @@ export default class JsonldParser {
         if (item['@graph']) {
           let context = item['@context'];
           let checkContext = true;
+
           if (!context) {
             this.#errorMissingContext(item);
           } else {
             checkContext = false;
           }
           item['@graph'].forEach((graphItem) => {
+            if (item['@location']) {
+              graphItem['@location'] = item['@location'];
+            }
             if (checkContext) {
               if (context && !graphItem['@context']) {
                 graphItem['@context'] = context;
@@ -161,10 +165,6 @@ export default class JsonldParser {
                   this.#errorMissingContext(graphItem);
                 }
               }
-            }
-            // Move location and scope down to new root items
-            if (item['@location']) {
-              graphItem['@location'] = item['@location'];
             }
             if (item['@source']) {
               graphItem['@source'] = item['@source'];

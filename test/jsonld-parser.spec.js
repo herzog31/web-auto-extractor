@@ -407,14 +407,14 @@ describe('JSON-LD Parser', () => {
     assert.deepEqual(errors[1], {
       message: 'JSON-LD object missing @context attribute',
       format: 'jsonld',
-      sourceCodeLocation: {},
+      sourceCodeLocation: { startOffset: 35, endOffset: 538 },
       source:
         '{"@type":"Movie","name":"The Matrix","director":{"@type":"Person","name":"Lana Wachowski"}}',
     });
     assert.deepEqual(errors[2], {
       message: 'JSON-LD object missing @context attribute',
       format: 'jsonld',
-      sourceCodeLocation: {},
+      sourceCodeLocation: { startOffset: 35, endOffset: 538 },
       source:
         '{"@type":"Person","name":"Keanu Reeves","actor":{"@type":"Movie","name":"The Matrix"}}',
     });
