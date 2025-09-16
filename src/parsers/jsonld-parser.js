@@ -152,6 +152,7 @@ export default class JsonldParser {
             checkContext = false;
           }
           item['@graph'].forEach((graphItem) => {
+            // Move location and scope down to new root items
             if (item['@location']) {
               graphItem['@location'] = item['@location'];
             }
