@@ -155,6 +155,9 @@ export default class JsonldParser {
             if (item['@location']) {
               graphItem['@location'] = item['@location'];
             }
+            if (item['@source']) {
+              graphItem['@source'] = item['@source'];
+            }
             if (checkContext) {
               if (context && !graphItem['@context']) {
                 graphItem['@context'] = context;
@@ -165,9 +168,6 @@ export default class JsonldParser {
                   this.#errorMissingContext(graphItem);
                 }
               }
-            }
-            if (item['@source']) {
-              graphItem['@source'] = item['@source'];
             }
 
             if (!graphItem['@type']) {
