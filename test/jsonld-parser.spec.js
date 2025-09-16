@@ -373,7 +373,7 @@ describe('JSON-LD Parser', () => {
 
   it('propagates context from first item to all subsequent items in @graph', async () => {
     const jsonldContextAll = await fileReader(
-      'test/resources/jsonld-context-propogate-all.html',
+      'test/resources/jsonld-context-propagate-all.html',
     );
     const { jsonld, errors } = extractor.parse(jsonldContextAll);
     assert.isTrue(errors.length === 1, JSON.stringify(errors));
@@ -393,7 +393,7 @@ describe('JSON-LD Parser', () => {
 
   it('context on last item only applies to that item', async () => {
     const jsonldContextLast = await fileReader(
-      'test/resources/jsonld-context-propogate-last.html',
+      'test/resources/jsonld-context-propagate-last.html',
     );
     const { jsonld, errors } = extractor.parse(jsonldContextLast);
     assert.isTrue(errors.length === 3, JSON.stringify(errors));
