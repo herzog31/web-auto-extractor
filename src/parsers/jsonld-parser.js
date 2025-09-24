@@ -34,6 +34,11 @@ export default class JsonldParser {
     try {
       const parsed = JSON.parse(text);
 
+      // Check if parsed is null
+      if (!parsed) {
+        throw new Error('JSON-LD is null');
+      }
+
       // Adjust offsets by removing leading and trailing whitespace
       let startOffset = sourceCodeLocation.startOffset;
       let endOffset = sourceCodeLocation.endOffset;

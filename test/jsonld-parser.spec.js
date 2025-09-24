@@ -355,6 +355,7 @@ describe('JSON-LD Parser', () => {
       ],
     });
   });
+
   it('handles empty JSON-LD', async () => {
     const emptyJsonld = await fileReader('test/resources/jsonld-empty.html');
     const { jsonld, errors } = extractor.parse(emptyJsonld);
@@ -437,6 +438,28 @@ describe('JSON-LD Parser', () => {
       sourceCodeLocation: { startOffset: 35, endOffset: 620 },
       source:
         '{"@graph":[{"@context":"http://schema.org","@type":"Movie","name":"The Matrix","director":{"@type":"Person","name":"Lana Wachowski"}},{"@context":"http://schema.org","@type":"Person","name":"Keanu Reeves","actor":{"@type":"Movie","name":"The Matrix"}},{"@context":"http://schema.org","@type":["Movie","CreativeWork"],"name":"The Matrix Reloaded"}]}',
+    });
+  });
+
+  it('handles null JSON-LD', async () => {
+    // Ensure to not fail early during setting of location or embedSource
+    extractor = new WebAutoExtractor({
+      addLocation: false,
+      embedSource: false,
+    });
+
+    const nullJsonLd = '<script type="application/ld+json">null</script>';
+    const { jsonld, errors } = extractor.parse(nullJsonLd);
+    assert.deepEqual(jsonld, {});
+    assert.equal(errors.length, 1);
+    assert.deepEqual(errors[0], {
+      message: 'Could not parse JSON-LD',
+      format: 'jsonld',
+      source: nullJsonLd.substring(35, 39),
+      sourceCodeLocation: {
+        startOffset: 35,
+        endOffset: 39,
+      },
     });
   });
 });
