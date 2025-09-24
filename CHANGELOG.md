@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/herzog31/web-auto-extractor/compare/v2.2.0...v2.2.1) (2025-09-24)
+
+
+### Bug Fixes
+
+* Return error if parsed JSON is null ([#32](https://github.com/herzog31/web-auto-extractor/issues/32)) ([594f45f](https://github.com/herzog31/web-auto-extractor/commit/594f45f37c0af419f4544ee5efa5c84bc4746bc7))
+
 # [2.2.0](https://github.com/herzog31/web-auto-extractor/compare/v2.1.1...v2.2.0) (2025-07-31)
 
 
