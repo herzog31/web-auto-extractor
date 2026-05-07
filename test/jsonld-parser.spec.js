@@ -441,6 +441,14 @@ describe('JSON-LD Parser', () => {
     });
   });
 
+  it('ignores null @graph containers', async () => {
+    const nullGraphJsonLd =
+      '<script type="application/ld+json">{"@context":"http://schema.org","@graph":null}</script>';
+    const { jsonld, errors } = extractor.parse(nullGraphJsonLd);
+    assert.deepEqual(jsonld, {});
+    assert.equal(errors.length, 0);
+  });
+
   it('handles null JSON-LD', async () => {
     // Ensure to not fail early during setting of location or embedSource
     extractor = new WebAutoExtractor({

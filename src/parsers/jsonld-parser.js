@@ -139,6 +139,10 @@ export default class JsonldParser {
     });
   }
 
+  #isRecord(value) {
+    return typeof value === 'object' && value != null;
+  }
+
   #normalizeJsonldData() {
     const normalizedData = {};
     this.jsonldData.forEach((item) => {
@@ -147,7 +151,18 @@ export default class JsonldParser {
       }
 
       item.forEach((item) => {
-        if (item['@graph']) {
+        if (!this.#isRecord(item)) {
+          return;
+        }
+
+        const hasGraph = Object.prototype.hasOwnProperty.call(item, '@graph');
+        const graph = item['@graph'];
+
+        if (hasGraph && graph == null) {
+          return;
+        }
+
+        if (hasGraph) {
           let context = item['@context'];
           let checkContext = true;
 
@@ -156,7 +171,13 @@ export default class JsonldParser {
           } else {
             checkContext = false;
           }
-          item['@graph'].forEach((graphItem) => {
+
+          const graphItems = Array.isArray(graph) ? graph : [graph];
+          graphItems.forEach((graphItem) => {
+            if (!this.#isRecord(graphItem)) {
+              return;
+            }
+
             // Move location and scope down to new root items
             if (item['@location']) {
               graphItem['@location'] = item['@location'];
@@ -192,21 +213,23 @@ export default class JsonldParser {
               normalizedData[graphItem['@type']].push(graphItem);
             }
           });
-        } else {
-          if (!item['@type']) {
-            this.#errorMissingType(item);
-            return;
-          }
 
-          if (Array.isArray(item['@type'])) {
-            item['@type'].forEach((type) => {
-              normalizedData[type] = normalizedData[type] || [];
-              normalizedData[type].push(item);
-            });
-          } else {
-            normalizedData[item['@type']] = normalizedData[item['@type']] || [];
-            normalizedData[item['@type']].push(item);
-          }
+          return;
+        }
+
+        if (!item['@type']) {
+          this.#errorMissingType(item);
+          return;
+        }
+
+        if (Array.isArray(item['@type'])) {
+          item['@type'].forEach((type) => {
+            normalizedData[type] = normalizedData[type] || [];
+            normalizedData[type].push(item);
+          });
+        } else {
+          normalizedData[item['@type']] = normalizedData[item['@type']] || [];
+          normalizedData[item['@type']].push(item);
         }
       });
     });
